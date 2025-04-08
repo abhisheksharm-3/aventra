@@ -1,4 +1,5 @@
 "use client"
+
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import { ChevronDown, X, Sun, Moon, Menu } from "lucide-react"
@@ -72,57 +73,50 @@ const NavbarComponent = () => {
     setMounted(true);
   }, []);
   
-  // Internal components to improve organization
+  // Experiences dropdown menu
   const ExperiencesDropdown = () => (
     <NavigationMenuItem>
-      <NavigationMenuTrigger className="bg-transparent hover:bg-accent/50 font-medium text-sm h-10 px-4 tracking-wide rounded-full transition-all duration-300 group">
-        <span className="bg-gradient-to-r from-primary to-primary-foreground/90 bg-clip-text text-transparent group-hover:from-primary/90 group-hover:to-primary transition-all duration-300">
+      <NavigationMenuTrigger className="bg-transparent hover:bg-accent/50 font-medium text-sm h-10 px-4 tracking-wide rounded-full transition-colors duration-300 group">
+        <span className="text-primary group-hover:from-primary/90 group-hover:to-primary transition-colors duration-300">
           Experiences
         </span>
-        <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition-transform duration-300 ease-in-out group-data-[state=open]:rotate-180" />
       </NavigationMenuTrigger>
       <NavigationMenuContent>
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 10 }}
-          transition={{ duration: 0.2 }}
-        >
-          <ul className="grid w-[400px] gap-3 p-6 md:w-[550px] md:grid-cols-2 lg:w-[650px] rounded-2xl shadow-md border border-border/10 bg-background/90 backdrop-blur-xl">
-            {navItems.map((item, index) => (
-              <motion.li 
-                key={item.name}
-                custom={index}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                variants={menuItemVariants}
-              >
-                <NavigationMenuLink asChild>
-                  <a
-                    href={`#${item.name.toLowerCase().replace(" ", "-")}`}
-                    className="block select-none space-y-1 rounded-xl p-4 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground group relative overflow-hidden"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-primary/0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <div className="relative z-10">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">{item.icon}</span>
-                        <div className="text-base font-medium leading-none">{item.name}</div>
-                      </div>
-                      <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground mt-2">
-                        {item.description}
-                      </p>
+        <ul className="grid w-[400px] gap-3 p-6 md:w-[550px] md:grid-cols-2 lg:w-[650px] rounded-2xl shadow-md border border-border/10 bg-background/90 backdrop-blur-xl">
+          {navItems.map((item, index) => (
+            <motion.li 
+              key={item.name}
+              custom={index}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={menuItemVariants}
+            >
+              <NavigationMenuLink asChild>
+                <a
+                  href={`#${item.name.toLowerCase().replace(" ", "-")}`}
+                  className="block select-none space-y-1 rounded-xl p-4 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground group relative overflow-hidden"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-primary/0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="relative z-10">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">{item.icon}</span>
+                      <div className="text-base font-medium leading-none">{item.name}</div>
                     </div>
-                  </a>
-                </NavigationMenuLink>
-              </motion.li>
-            ))}
-          </ul>
-        </motion.div>
+                    <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground mt-2">
+                      {item.description}
+                    </p>
+                  </div>
+                </a>
+              </NavigationMenuLink>
+            </motion.li>
+          ))}
+        </ul>
       </NavigationMenuContent>
     </NavigationMenuItem>
   );
   
+  // Theme toggle button
   const ThemeToggle = () => {
     if (!mounted) return null;
     
@@ -131,7 +125,7 @@ const NavbarComponent = () => {
         variant="ghost"
         size="icon"
         onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-        className="rounded-full w-9 h-9 border border-border/10 bg-background/50 hover:bg-accent/50 transition-all duration-300"
+        className="rounded-full w-9 h-9 border border-border/10 bg-background/50 hover:bg-accent/50 transition-colors duration-300"
       >
         <Sun className="h-[1.1rem] w-[1.1rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
         <Moon className="absolute h-[1.1rem] w-[1.1rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
@@ -140,13 +134,14 @@ const NavbarComponent = () => {
     );
   };
   
+  // Account dropdown menu
   const AccountDropdown = () => (
     <DropdownMenu>
       <DropdownMenuTrigger asChild className="hidden md:flex">
         <Button 
           variant="ghost" 
           size="sm" 
-          className="gap-1.5 font-medium tracking-wide h-10 px-4 rounded-full hover:bg-accent/50 transition-all duration-300 group"
+          className="gap-1.5 font-medium tracking-wide h-10 px-4 rounded-full hover:bg-accent/50 transition-colors duration-300 group"
         >
           Account 
           <ChevronDown className="h-3.5 w-3.5 text-muted-foreground transition-transform duration-300 ease-in-out group-data-[state=open]:rotate-180" />
@@ -156,34 +151,31 @@ const NavbarComponent = () => {
         align="end" 
         className="w-[220px] p-2.5 rounded-xl shadow-lg border border-border/10 bg-background/95 backdrop-blur-xl"
       >
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          {accountItems.map((item, index) => (
-            <motion.div
-              key={item.name}
-              custom={index}
-              initial="hidden"
-              animate="visible"
-              variants={menuItemVariants}
-            >
-              <DropdownMenuItem className="rounded-lg focus:bg-accent/70 py-2 px-3 cursor-pointer group">
-                <Link href={`/${item.name.toLowerCase().replace(" ", "-")}`} className="flex w-full items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                    {item.icon}
-                  </div>
-                  <span className="font-medium group-hover:translate-x-0.5 transition-transform">{item.name}</span>
-                </Link>
-              </DropdownMenuItem>
-            </motion.div>
-          ))}
-        </motion.div>
+        {accountItems.map((item, index) => (
+          <motion.div
+            key={item.name}
+            custom={index}
+            initial="hidden"
+            animate="visible"
+            variants={menuItemVariants}
+          >
+            <DropdownMenuItem className="rounded-lg focus:bg-accent/70 py-2 px-3 cursor-pointer group">
+              <Link href={`/${item.name.toLowerCase().replace(" ", "-")}`} className="flex w-full items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                  {item.icon}
+                </div>
+                <span className="font-medium group-hover:translate-x-0.5 transition-transform">
+                  {item.name}
+                </span>
+              </Link>
+            </DropdownMenuItem>
+          </motion.div>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );
   
+  // Mobile menu toggle button
   const MobileMenuToggle = () => (
     <Button 
       variant="ghost" 
@@ -218,6 +210,7 @@ const NavbarComponent = () => {
     </Button>
   );
   
+  // Mobile menu
   const MobileMenu = () => (
     <AnimatePresence>
       {mobileMenuOpen && (
@@ -240,12 +233,12 @@ const NavbarComponent = () => {
               >
                 <Link 
                   href={`#${item.name.toLowerCase().replace(" ", "-")}`} 
-                  className="flex items-center text-foreground/90 hover:text-foreground py-3.5 px-4 rounded-xl hover:bg-accent/50 transition-all duration-300 group"
+                  className="flex items-center text-foreground/90 hover:text-foreground py-3.5 px-4 rounded-xl hover:bg-accent/50 transition-colors duration-300 group"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   <span className="text-lg mr-3">{item.icon}</span>
                   <span className="font-medium">{item.name}</span>
-                  <span className="ml-auto text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all duration-300">→</span>
+                  <span className="ml-auto text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-transform duration-300">→</span>
                 </Link>
               </motion.div>
             ))}
@@ -283,7 +276,7 @@ const NavbarComponent = () => {
               >
                 <Button 
                   size="lg" 
-                  className="w-full justify-center font-medium tracking-wide rounded-xl shadow-sm hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 bg-gradient-to-r from-primary to-primary-foreground/90 hover:from-primary-foreground/90 hover:to-primary py-6"
+                  className="w-full justify-center font-medium tracking-wide rounded-xl shadow-sm py-6 bg-primary hover:bg-primary/90 transition-colors duration-300"
                 >
                   <div className="flex items-center gap-2">
                     <div className="w-6 h-6 rounded-full bg-background/20 flex items-center justify-center text-primary-foreground">
@@ -300,21 +293,22 @@ const NavbarComponent = () => {
     </AnimatePresence>
   );
   
+  // Desktop navigation menu
   const DesktopNavItems = () => (
     <NavigationMenu className="hidden md:flex">
       <NavigationMenuList className="gap-1">
         <ExperiencesDropdown />
         
-        {navItems.map((item) => (
+        {/* Regular nav items (not in the dropdown) */}
+        {navItems.slice(0, 3).map((item) => (
           <NavigationMenuItem key={item.name}>
             <Link href={`#${item.name.toLowerCase().replace(" ", "-")}`} legacyBehavior passHref>
               <NavigationMenuLink className={cn(
-                "flex px-4 h-10 items-center justify-center rounded-full text-sm font-medium transition-colors relative",
+                "flex px-4 h-10 items-center justify-center rounded-full text-sm font-medium",
                 "hover:bg-accent/50 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
-                "group overflow-hidden"
+                "transition-colors duration-200"
               )}>
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-primary/0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <span className="relative z-10">{item.name}</span>
+                {item.name}
               </NavigationMenuLink>
             </Link>
           </NavigationMenuItem>
@@ -323,10 +317,11 @@ const NavbarComponent = () => {
     </NavigationMenu>
   );
   
+  // Get Started Button with simplified transitions
   const GetStartedButton = () => (
     <Button 
       size="sm" 
-      className="font-medium tracking-wide px-6 h-10 rounded-full bg-gradient-to-r from-primary to-primary-foreground/90 hover:from-primary-foreground/90 hover:to-primary border border-primary/20 shadow-sm hover:shadow-lg hover:shadow-primary/10 transition-all duration-300"
+      className="font-medium tracking-wide px-6 h-10 rounded-full bg-primary hover:bg-primary/90 transition-colors duration-300"
     >
       Get Started
     </Button>
@@ -335,25 +330,25 @@ const NavbarComponent = () => {
   return (
     <header 
       className={cn(
-        "sticky top-0 z-50 w-full transition-all duration-500",
+        "sticky top-0 z-50 w-full transition-colors duration-300",
         "backdrop-blur-xl border-b",
         scrolled 
           ? "bg-background/70 border-border/10 shadow-sm" 
           : "bg-background/0 border-transparent"
       )}
     >
-      <div className="container mx-auto px-4 md:px-6 flex h-18 lg:h-20 items-center justify-between">
+      <div className="container mx-auto px-4 md:px-6 flex h-16 lg:h-18 items-center justify-between">
         {/* Logo */}
         <Link 
           href="/" 
-          className="group flex items-center gap-2.5 transition-all duration-300"
+          className="flex items-center gap-2.5"
         >
           <div className="relative overflow-hidden rounded-xl p-1">
             <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary-foreground/20 rounded-xl blur-xl opacity-70"></div>
             <img 
               src="/logo.png" 
               alt="Logo" 
-              className="w-[120px] relative z-10 transition-all duration-300 group-hover:scale-105"
+              className="w-[120px] relative z-10 transition-transform duration-300 hover:scale-105"
             />
           </div>
         </Link>
