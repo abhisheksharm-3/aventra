@@ -1,132 +1,229 @@
-import Link from "next/link"
-import { Compass } from "lucide-react"
+"use client";
+
+import Link from "next/link";
+import { Sparkles } from "lucide-react";
+import { motion } from "framer-motion";
+import Image from "next/image";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
-  
+
   return (
-    <footer className="border-t py-20 bg-[#FCFCFC]">
-      <div className="container">
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-12">
-          <div className="col-span-2 lg:col-span-2">
-            <Link href="/" className="flex items-center gap-2">
-              <Compass className="h-7 w-7 text-primary" />
-              <span className="font-display text-xl tracking-wide">Aventra</span>
+    <footer className="relative border-t pt-20 pb-16 overflow-hidden">
+      {/* Background with subtle gradients matching hero */}
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute inset-0 bg-background/95" />
+        <div className="absolute top-20 -left-40 md:-left-20 h-[400px] w-[400px] bg-primary/5 rounded-full blur-[100px] opacity-40 animate-[pulse_12s_infinite]" />
+        <div className="absolute bottom-0 -right-40 md:-right-20 h-[300px] w-[300px] bg-blue-700/5 rounded-full blur-[100px] opacity-40 animate-[pulse_16s_infinite]" />
+      </div>
+
+      {/* Top wave decoration */}
+      <div className="absolute top-0 left-0 w-full overflow-hidden leading-0 transform">
+        <svg
+          className="relative block w-full h-[30px] sm:h-[40px] -mt-[1px]"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 1200 120"
+          preserveAspectRatio="none"
+        >
+          <path
+            d="M1200 120L0 16.48 0 0 1200 0 1200 120z"
+            className="fill-background/60 dark:fill-background/40"
+            opacity=".25"
+          />
+        </svg>
+      </div>
+
+      <div className="container px-4 sm:px-6 md:px-8">
+        <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 md:gap-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            viewport={{ once: true, margin: "-50px" }}
+            className="col-span-2 lg:col-span-2"
+          >
+            <Link href="/" className="flex items-center gap-2.5 group">
+              <div className="relative overflow-hidden rounded-xl p-1">
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/10 rounded-xl blur-sm opacity-70"></div>
+                <div className="relative z-10 flex items-center gap-2 transition-transform duration-300 group-hover:scale-105">
+                  <Image
+                    src="/logo.png"
+                    alt="Logo"
+                    width={120}
+                    height={30}
+                    className="w-[120px]"
+                  />
+                </div>
+              </div>
             </Link>
-            <p className="mt-6 text-sm text-muted-foreground max-w-xs font-light tracking-wide leading-relaxed">
-              Curating exceptional experiences for discerning individuals seeking memorable adventures and gatherings.
+
+            <p className="mt-5 sm:mt-6 text-sm text-muted-foreground max-w-xs font-light tracking-wide leading-relaxed">
+              Curating exceptional experiences for discerning individuals
+              seeking memorable adventures and gatherings.
             </p>
-          </div>
+
+            <div className="mt-6 inline-flex items-center gap-2 py-2 px-3 rounded-lg bg-background/80 border border-border/30 shadow-sm">
+              <Sparkles className="h-3.5 w-3.5 text-primary opacity-70" />
+              <span className="text-xs sm:text-sm">
+                AI-powered recommendations
+              </span>
+            </div>
+          </motion.div>
+
           {[
             {
               title: "EXPERIENCES",
               links: [
-                { name: "Journeys", href: "#" },
-                { name: "Social Events", href: "#" },
-                { name: "Culinary", href: "#" },
-                { name: "Romantic", href: "#" }
-              ]
+                { name: "Journeys", href: "#trips" },
+                { name: "Social Events", href: "#nights-out" },
+                { name: "Culinary", href: "#dining" },
+                { name: "Romantic", href: "#dates" },
+              ],
             },
             {
               title: "COMPANY",
               links: [
-                { name: "About", href: "#" },
-                { name: "Journal", href: "#" },
-                { name: "Careers", href: "#" },
-                { name: "Contact", href: "#" }
-              ]
+                { name: "About", href: "#about" },
+                { name: "Journal", href: "#journal" },
+                { name: "Careers", href: "#careers" },
+                { name: "Contact", href: "#contact" },
+              ],
             },
             {
               title: "LEGAL",
               links: [
-                { name: "Privacy", href: "#" },
-                { name: "Terms", href: "#" },
-                { name: "Cookies", href: "#" },
-                { name: "Licenses", href: "#" }
-              ]
-            }
+                { name: "Privacy", href: "#privacy" },
+                { name: "Terms", href: "#terms" },
+                { name: "Cookies", href: "#cookies" },
+                { name: "Licenses", href: "#licenses" },
+              ],
+            },
           ].map((category, index) => (
-            <div key={index}>
-              <h3 className="font-display mb-6 tracking-wide text-sm">{category.title}</h3>
-              <ul className="space-y-4 text-sm">
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.1 * (index + 1) }}
+              viewport={{ once: true, margin: "-50px" }}
+            >
+              <h3 className="font-serif mb-5 sm:mb-6 tracking-wide text-xs sm:text-sm">
+                {category.title}
+              </h3>
+              <ul className="space-y-3 sm:space-y-4 text-xs sm:text-sm">
                 {category.links.map((link, linkIndex) => (
-                  <li key={linkIndex}>
+                  <motion.li
+                    key={linkIndex}
+                    initial={{ opacity: 0, x: -5 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{
+                      duration: 0.3,
+                      delay: 0.2 + 0.05 * linkIndex,
+                    }}
+                    viewport={{ once: true }}
+                  >
                     <Link
                       href={link.href}
-                      className="text-muted-foreground hover:text-foreground transition-colors font-light tracking-wide"
+                      className="text-muted-foreground hover:text-foreground transition-colors font-light tracking-wide group flex items-center"
                     >
-                      {link.name}
+                      <span className="group-hover:translate-x-0.5 transition-transform duration-300">
+                        {link.name}
+                      </span>
+                      <span className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        →
+                      </span>
                     </Link>
-                  </li>
+                  </motion.li>
                 ))}
               </ul>
-            </div>
+            </motion.div>
           ))}
         </div>
-        <div className="mt-16 pt-8 border-t flex flex-col md:flex-row justify-between items-center gap-6">
-          <p className="text-sm text-muted-foreground font-light tracking-wide">
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          viewport={{ once: true }}
+          className="mt-14 sm:mt-16 pt-6 sm:pt-8 border-t border-border/40 flex flex-col md:flex-row justify-between items-center gap-6"
+        >
+          <p className="text-xs sm:text-sm text-muted-foreground font-light tracking-wide">
             © {currentYear} Aventra. All rights reserved.
           </p>
-          <div className="flex gap-8">
+          <div className="flex items-center gap-6 sm:gap-8">
             {[
-              { name: "Twitter", icon: (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" />
-                </svg>
-              )},
-              { name: "Instagram", icon: (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
-                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-                  <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
-                </svg>
-              )},
-              { name: "Facebook", icon: (
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-                </svg>
-              )}
+              {
+                name: "Twitter",
+                icon: (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" />
+                  </svg>
+                ),
+              },
+              {
+                name: "Instagram",
+                icon: (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+                  </svg>
+                ),
+              },
+              {
+                name: "Facebook",
+                icon: (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+                  </svg>
+                ),
+              },
             ].map((social, index) => (
-              <Link key={index} href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+              <Link
+                key={index}
+                href="#"
+                className="text-muted-foreground hover:text-foreground transition-colors group"
+              >
                 <span className="sr-only">{social.name}</span>
-                {social.icon}
+                <div className="p-2 rounded-full bg-background hover:bg-accent/60 transition-colors border border-border/30 group-hover:border-border/50">
+                  {social.icon}
+                </div>
               </Link>
             ))}
           </div>
-        </div>
+        </motion.div>
       </div>
     </footer>
-  )
-}
+  );
+};
 
-export default Footer
+export default Footer;

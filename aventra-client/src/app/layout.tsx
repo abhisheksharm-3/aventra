@@ -1,36 +1,40 @@
-import type React from "react"
+import type { ReactNode } from "react"
 import "@/app/globals.css"
-import { Playfair_Display, Inter } from "next/font/google"
+import { IBM_Plex_Sans, Fraunces } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 
-const inter = Inter({
+// IBM Plex Sans for content text
+const ibmPlexSans = IBM_Plex_Sans({
   subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
   variable: "--font-sans",
+  display: "swap",
 })
 
-const playfair = Playfair_Display({
+// Fraunces for headings
+const fraunces = Fraunces({
   subsets: ["latin"],
-  variable: "--font-playfair",
+  variable: "--font-serif",
+  display: "swap",
 })
 
 export const metadata = {
-  title: "Aventra | Excursion Planning Platform",
-  description: "Plan your next adventure with Aventra - from epic trips to spontaneous nights out.",
+  title: "Aventra | Discover Extraordinary Experiences",
+  description: "Find and book unique experiences - from epic trips to nights out and everything in between.",
 }
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${playfair.variable} font-sans antialiased`}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+    <html lang="en" suppressHydrationWarning className="hide-scrollbar">
+      <body className={`${ibmPlexSans.variable} ${fraunces.variable} font-sans antialiased`}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
         </ThemeProvider>
       </body>
     </html>
   )
 }
-

@@ -14,7 +14,7 @@ const Layout = ({
   return (
     <div
       className={cn(
-        "flex flex-col justify-between",
+        "flex flex-col justify-between font-sans",
         className
       )}
     >
