@@ -44,7 +44,6 @@ const Footer = () => {
           >
             <Link href="/" className="flex items-center gap-2.5 group">
               <div className="relative overflow-hidden rounded-xl p-1">
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/10 rounded-xl blur-sm opacity-70"></div>
                 <div className="relative z-10 flex items-center gap-2 transition-transform duration-300 group-hover:scale-105">
                   <Image
                     src="/logo.png"

@@ -16,7 +16,7 @@ export const GetStartedButton = () => (
                 bg-gradient-to-r from-primary/95 to-primary/85 
                 hover:from-primary hover:to-primary/90
                 text-primary-foreground shadow-md hover:shadow-lg 
-                transition-all duration-300 group border border-primary/10"
+                transition-all duration-300 group border border-primary/10 cursor-pointer"
     >
       <div className="flex items-center gap-2">
         <span className="group-hover:translate-x-0.5 transition-transform duration-300">
