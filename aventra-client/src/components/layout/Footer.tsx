@@ -9,7 +9,7 @@ const Footer = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="relative border-t pt-20 pb-16 overflow-hidden">
+    <footer className="relative border-t pt-20 pb-16 overflow-hidden flex items-center justify-center w-screen">
       {/* Background with subtle gradients matching hero */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute inset-0 bg-background/95" />

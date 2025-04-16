@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils"
 
 const DashboardPreview = () => {
   return (
-    <section id="dashboard-preview" className="relative py-24 sm:py-28 md:py-36 overflow-hidden">
+    <section id="dashboard-preview" className="relative py-24 sm:py-28 md:py-36 overflow-hidden flex items-center justify-center">
       {/* Background with subtle gradients matching hero */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute inset-0 bg-background/95" />

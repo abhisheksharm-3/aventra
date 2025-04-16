@@ -20,7 +20,7 @@ const TestimonialCard = ({ quote, author, role, imageSrc, index }: TestimonialCa
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay: 0.15 * index }}
       viewport={{ once: true, margin: "-50px" }}
-      className="group rounded-xl overflow-hidden bg-background/50 backdrop-blur-sm border border-border/40 shadow-sm hover:shadow-lg transition-all duration-300 p-6 relative"
+      className="group rounded-xl overflow-hidden bg-background/50 backdrop-blur-sm border border-border/40 shadow-sm hover:shadow-lg transition-all duration-300 p-6 relative "
     >
       {/* Background effects */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background/0 to-background/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -77,7 +77,7 @@ const TestimonialsSection = () => {
   ];
 
   return (
-    <section id="testimonials" className="relative py-24 sm:py-28 md:py-36 overflow-hidden">
+    <section id="testimonials" className="relative py-24 sm:py-28 md:py-36 overflow-hidden flex items-center justify-center">
       {/* Background with subtle gradients matching hero */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute inset-0 bg-background/95" />

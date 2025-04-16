@@ -104,7 +104,7 @@ const FeaturesSection = () => {
         <div className="absolute bottom-0 -right-40 md:-right-20 h-[500px] w-[500px] bg-blue-700/5 rounded-full blur-[100px] opacity-60 animate-[pulse_14s_infinite]" />
       </div>
 
-      <div className="container px-4 sm:px-6 md:px-8">
+      <div className="container px-4 sm:px-6 md:px-8 w-full mx-auto ">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}

@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils"
 
 const CTASection = () => {
   return (
-    <section id="cta" className="relative py-24 sm:py-28 md:py-36 overflow-hidden">
+    <section id="cta" className="relative py-24 sm:py-28 md:py-36 overflow-hidden flex items-center justify-center">
       {/* Background gradients */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/90 to-primary"></div>
