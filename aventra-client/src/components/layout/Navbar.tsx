@@ -251,25 +251,30 @@ const NavbarComponent = () => {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className="md:hidden fixed inset-0 z-50 flex flex-col overflow-y-auto"
+          className="md:hidden fixed inset-0 z-50 flex flex-col overflow-y-auto bg-background/60 backdrop-blur-xl"
           role="dialog"
           aria-modal="true"
           aria-label="Mobile navigation menu"
+          style={{
+            position: 'fixed',
+            width: '100vw',
+            height: '100vh',
+            top: 0,
+            left: 0
+          }}
         >
           {/* Content container */}
-          <div className="relative z-10 h-full flex flex-col min-h-screen">
+          <div className="relative z-[9999] h-full flex flex-col min-h-screen backdrop-blur-xl bg-background/80">
             {/* Header with close button */}
-            <div className="sticky top-0 flex items-center justify-between px-6 py-4 border-b border-border/20">
-              <Link href="/" className="flex items-center gap-2" onClick={() => setMobileMenuOpen(false)}>
-                <Image 
+            <div className="sticky top-0 flex justify-between px-6 py-4 bg-background/80 backdrop-blur-2xl">
+            <Image 
                   src="/logo.png" 
                   alt="Logo" 
-                  width={100}
-                  height={25}
-                  className="w-auto h-6"
+                  width={110}
+                  height={28}
+                  className="w-auto h-7 md:h-8"
                   priority
                 />
-              </Link>
               <Button 
                 variant="ghost" 
                 size="icon" 
