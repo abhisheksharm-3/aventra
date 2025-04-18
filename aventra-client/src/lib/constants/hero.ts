@@ -7,7 +7,13 @@ export const trendingExperiences = [
     { name: "Cooking Classes", icon: "👨‍🍳" },
     { name: "Wine Tastings", icon: "🍷" }
   ];
-  
+  export const recentSearches = [
+    "Beach trip to Goa",
+    "Tokyo food tour",
+    "Paris weekend getaway",
+    "Hiking in Himalayas",
+    "Safari in South Africa"
+  ];
   export const featuredDestinations = [
     { 
       name: "Kyoto", 
@@ -26,22 +32,73 @@ export const trendingExperiences = [
     }
   ];
   
-  export const popularLocations = [
+
+// Update your constants file
+
+export const popularLocations = [
+  "Paris, France",
+  "New York, USA",
+  "Tokyo, Japan",
+  "London, UK",
+  "Rome, Italy",
+  "Sydney, Australia",
+  "Barcelona, Spain",
+  "Dubai, UAE",
+  "Bali, Indonesia",
+  "Amsterdam, Netherlands",
+  "Santorini, Greece",
+  "Hong Kong",
+  "Singapore",
+  "Bangkok, Thailand",
+  "Marrakech, Morocco",
+  "Kyoto, Japan"
+];
+
+// Grouping by region for better organization
+export const locationsByRegion = {
+  "Europe": [
     "Paris, France",
-    "Tokyo, Japan",
-    "New York, USA",
-    "Rome, Italy",
-    "Sydney, Australia",
-    "Bangkok, Thailand",
     "London, UK",
-    "Barcelona, Spain"
-  ];
-  
-  export const regions = [
-    { id: "europe", label: "Europe" },
-    { id: "asia", label: "Asia" },
-    { id: "namerica", label: "North America" },
-    { id: "samerica", label: "South America" },
-    { id: "africa", label: "Africa" },
-    { id: "oceania", label: "Oceania" }
-  ];
+    "Rome, Italy",
+    "Barcelona, Spain",
+    "Amsterdam, Netherlands",
+    "Santorini, Greece",
+    "Prague, Czech Republic",
+    "Vienna, Austria"
+  ],
+  "Asia": [
+    "Tokyo, Japan",
+    "Kyoto, Japan",
+    "Bangkok, Thailand",
+    "Bali, Indonesia",
+    "Singapore",
+    "Hong Kong",
+    "Seoul, South Korea",
+    "Shanghai, China"
+  ],
+  "Americas": [
+    "New York, USA",
+    "Los Angeles, USA",
+    "Mexico City, Mexico",
+    "Rio de Janeiro, Brazil",
+    "Vancouver, Canada",
+    "Miami, USA",
+    "San Francisco, USA",
+    "Buenos Aires, Argentina"
+  ],
+  "Middle East & Africa": [
+    "Dubai, UAE",
+    "Marrakech, Morocco",
+    "Cairo, Egypt",
+    "Cape Town, South Africa",
+    "Istanbul, Turkey",
+    "Tel Aviv, Israel"
+  ],
+  "Oceania": [
+    "Sydney, Australia",
+    "Melbourne, Australia",
+    "Auckland, New Zealand",
+    "Queenstown, New Zealand",
+    "Fiji Islands"
+  ]
+};

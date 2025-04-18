@@ -1,15 +1,14 @@
-import { ReactNode } from "react";
-
-export interface SearchSuggestionProps {
-  suggestion: string;
-  onClick: () => void;
-}
-
 export interface FilterButtonProps {
-  icon: ReactNode;
+  icon: React.ReactNode;
   label: string;
-  isSelected: boolean;
+  isSelected?: boolean;
   onClick: () => void;
+  isLoading?: boolean;
+  count?: number;
+  badge?: string | number;
+  disabled?: boolean;
+  tooltipContent?: string;
+  className?: string;
 }
 
 export interface TrendingItemProps {
@@ -18,10 +17,18 @@ export interface TrendingItemProps {
   onClick: () => void;
 }
 
+export interface SearchSuggestionProps {
+  suggestion: string;
+  onClick: () => void;
+  isRecent?: boolean;  // Add this new prop
+}
+
+// For DestinationCard
 export interface DestinationCardProps {
   name: string;
   country: string;
   image: string;
+  onClick?: () => void;  // Add this new prop
 }
 
 export interface FilterOptions {
@@ -29,6 +36,15 @@ export interface FilterOptions {
   dateRange: { from: Date; to: Date } | null;
   groupSize: number;
   regions: string[];
+  budget: BudgetOption | null; // Changed from string | null to BudgetOption | null
+  travelStyle: string[];
+}
+
+export interface BudgetOption {
+  type: string;
+  label: string;
+  maxAmount?: number;
+  currency: string;
 }
 
 export interface LocationFilterProps {
@@ -53,4 +69,11 @@ export interface GlobalFilterProps {
   onClose: () => void;
   selectedRegions: string[];
   setSelectedRegions: (regions: string[]) => void;
+}
+
+export interface LocationFilterProps {
+  onClose: () => void;
+  selectedLocation: string | null;
+  setSelectedLocation: (location: string | null) => void;
+  recentSearches?: string[];
 }
