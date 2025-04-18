@@ -1,20 +1,21 @@
 import { SearchSuggestionProps } from "@/types/hero";
-import { Search, History } from "lucide-react";
+import { Search, History, Sparkles } from "lucide-react";
 
-export const SearchSuggestion: React.FC<SearchSuggestionProps> = ({ 
-  suggestion, 
+export const SearchSuggestion = ({
+  suggestion,
   onClick,
-  isRecent = false 
-}) => (
-  <button
-    className="flex items-center w-full px-4 py-2.5 text-left rounded-lg hover:bg-primary/10 transition-colors"
-    onClick={onClick}
-  >
-    {isRecent ? (
-      <History className="h-4 w-4 mr-2 text-muted-foreground flex-shrink-0" />
-    ) : (
-      <Search className="h-4 w-4 mr-2 text-muted-foreground flex-shrink-0" />
-    )}
-    <span className="truncate">{suggestion}</span>
-  </button>
-);
+  isRecent,
+  isAutocomplete
+}: SearchSuggestionProps) => {
+  return (
+    <div
+      className="flex items-center px-3 py-1.5 hover:bg-accent/60 rounded-md cursor-pointer"
+      onClick={onClick}
+    >
+      {isRecent && <History className="h-3.5 w-3.5 mr-2 text-muted-foreground" />}
+      {isAutocomplete && <Sparkles className="h-3.5 w-3.5 mr-2 text-primary" />}
+      {!isRecent && !isAutocomplete && <Search className="h-3.5 w-3.5 mr-2 text-muted-foreground" />}
+      <span className="text-sm">{suggestion}</span>
+    </div>
+  );
+};

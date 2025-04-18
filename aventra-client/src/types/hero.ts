@@ -20,7 +20,8 @@ export interface TrendingItemProps {
 export interface SearchSuggestionProps {
   suggestion: string;
   onClick: () => void;
-  isRecent?: boolean;  // Add this new prop
+  isRecent?: boolean;
+  isAutocomplete?: boolean;
 }
 
 // For DestinationCard
