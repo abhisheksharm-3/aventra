@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import * as Slider from "@radix-ui/react-slider";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export const GroupSizeFilter: React.FC<GroupSizeFilterProps> = ({ 
   onClose, 
@@ -100,274 +101,280 @@ export const GroupSizeFilter: React.FC<GroupSizeFilterProps> = ({
   };
   
   return (
-    <div className="space-y-6 max-w-md mx-auto">
-      <DialogHeader className="pb-2 border-b">
-        <DialogTitle className="flex items-center gap-2 text-lg font-semibold">
-          <Users className="h-5 w-5" style={{ color: getColor(localGroupSize) }} />
+    <div className="flex flex-col max-h-[calc(100vh-100px)] overflow-hidden">
+      <DialogHeader className="pb-2 border-b shrink-0">
+        <DialogTitle className="flex items-center gap-2 text-base font-semibold">
+          <Users className="h-4 w-4" style={{ color: getColor(localGroupSize) }} />
           Group Size
         </DialogTitle>
       </DialogHeader>
       
-      {/* Categories */}
-      <div className="px-1">
-        <Tabs 
-          value={activeCategory} 
-          onValueChange={handleCategoryChange}
-          className="w-full"
-        >
-          <TabsList className="w-full grid grid-cols-5 h-10 rounded-xl bg-muted/30">
-            {categories.map(cat => (
-              <TabsTrigger
-                key={cat.id}
-                value={cat.id}
-                className={cn(
-                  "rounded-lg text-xs sm:text-sm transition-all",
-                  activeCategory === cat.id 
-                    ? "font-medium shadow-sm" 
-                    : "text-muted-foreground"
-                )}
-                style={{
-                  backgroundColor: activeCategory === cat.id ? "white" : "transparent",
-                  color: activeCategory === cat.id 
-                    ? getColor(cat.range[0]) 
-                    : undefined
-                }}
-              >
-                {cat.name}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-      </div>
-      
-      {/* Main size indicator */}
-      <div className="flex flex-col items-center justify-center py-2 space-y-3">
-        <div 
-          className="w-28 h-28 rounded-full flex items-center justify-center"
-          style={{
-            backgroundColor: `${getColor(localGroupSize)}15`,
-            boxShadow: `inset 0 0 0 1px ${getColor(localGroupSize)}30`
-          }}
-        >
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={localGroupSize}
-              className="flex flex-col items-center justify-center"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            >
-              <div 
-                className="text-5xl font-semibold"
-                style={{ color: getColor(localGroupSize) }}
-              >
-                {localGroupSize}
-              </div>
-              <div className="text-xs text-muted-foreground mt-1">
-                {localGroupSize === 1 ? 'Person' : 'People'}
-              </div>
-            </motion.div>
-          </AnimatePresence>
-        </div>
-        
-        {/* Description badge */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={`desc-${localGroupSize}`}
-            className="text-center px-4 py-1 rounded-full text-xs"
-            style={{ 
-              backgroundColor: `${getColor(localGroupSize)}15`,
-              color: getColor(localGroupSize)
-            }}
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -5 }}
+      <div className="space-y-3 mt-2">
+        {/* Categories */}
+        <div className="px-1">
+          <Tabs 
+            value={activeCategory} 
+            onValueChange={handleCategoryChange}
+            className="w-full"
           >
-            {getSizeDescription(localGroupSize)}
-          </motion.div>
-        </AnimatePresence>
-      </div>
-      
-      {/* Custom Slider with Radix UI */}
-      <div className="px-4 sm:px-6 pt-2">
-        <div className="relative h-16 flex items-center">
-          {/* Minus button */}
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-9 w-9 rounded-full border-muted shrink-0"
-            onClick={decrementSize}
-            disabled={localGroupSize <= MIN_SIZE}
-            aria-label="Decrease group size"
-          >
-            <Minus className="h-4 w-4" />
-          </Button>
-          
-          {/* Slider component using Radix UI for better accessibility */}
-          <div className="px-4 flex-1">
-            <Slider.Root
-              className="relative flex items-center select-none touch-none w-full h-10"
-              min={MIN_SIZE}
-              max={MAX_SIZE}
-              step={1}
-              value={[localGroupSize]}
-              onValueChange={handleSliderChange}
-              aria-label="Group size"
-            >
-              <Slider.Track className="bg-muted/40 relative grow rounded-full h-1.5">
-                <Slider.Range 
-                  className="absolute rounded-full h-full" 
-                  style={{ backgroundColor: getColor(localGroupSize) }}
-                />
-              </Slider.Track>
-              <Slider.Thumb 
-                className="block w-8 h-8 rounded-full bg-white focus:outline-none focus-visible:ring focus-visible:ring-offset-2 cursor-grab active:cursor-grabbing shadow-md"
-                style={{ 
-                  boxShadow: `0 0 0 3px ${getColor(localGroupSize)}40`,
-                  outline: `2px solid ${getColor(localGroupSize)}` 
-                }}
-                aria-label="Group size slider thumb"
-              >
-                <div 
-                  className="flex items-center justify-center h-full w-full"
-                  style={{ color: getColor(localGroupSize) }}
+            <TabsList className="w-full grid grid-cols-5 h-8 rounded-xl bg-muted/30">
+              {categories.map(cat => (
+                <TabsTrigger
+                  key={cat.id}
+                  value={cat.id}
+                  className={cn(
+                    "rounded-lg text-xs transition-all",
+                    activeCategory === cat.id 
+                      ? "font-medium shadow-sm" 
+                      : "text-muted-foreground"
+                  )}
+                  style={{
+                    backgroundColor: activeCategory === cat.id ? "white" : "transparent",
+                    color: activeCategory === cat.id 
+                      ? getColor(cat.range[0]) 
+                      : undefined
+                  }}
                 >
-                  <span className="text-xs font-medium">{localGroupSize}</span>
-                </div>
-              </Slider.Thumb>
-            </Slider.Root>
-            
-            {/* Markers */}
-            <div className="flex justify-between px-1.5 mt-1">
-              {[MIN_SIZE, 6, 11, MAX_SIZE].map(mark => (
-                <div key={mark} className="flex flex-col items-center">
-                  <span className="text-xs text-muted-foreground">
-                    {mark === MAX_SIZE ? `${mark}+` : mark}
-                  </span>
-                </div>
+                  {cat.name}
+                </TabsTrigger>
               ))}
+            </TabsList>
+          </Tabs>
+        </div>
+      
+        <ScrollArea className="flex-1 overflow-y-auto pr-3 -mr-3">
+          <div className="space-y-4 pb-2">
+            {/* Main size indicator */}
+            <div className="flex flex-col items-center justify-center space-y-2">
+              <div 
+                className="w-20 h-20 rounded-full flex items-center justify-center"
+                style={{
+                  backgroundColor: `${getColor(localGroupSize)}15`,
+                  boxShadow: `inset 0 0 0 1px ${getColor(localGroupSize)}30`
+                }}
+              >
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={localGroupSize}
+                    className="flex flex-col items-center justify-center"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  >
+                    <div 
+                      className="text-4xl font-semibold"
+                      style={{ color: getColor(localGroupSize) }}
+                    >
+                      {localGroupSize}
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-0.5">
+                      {localGroupSize === 1 ? 'Person' : 'People'}
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
+              
+              {/* Description badge */}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={`desc-${localGroupSize}`}
+                  className="text-center px-3 py-0.5 rounded-full text-xs"
+                  style={{ 
+                    backgroundColor: `${getColor(localGroupSize)}15`,
+                    color: getColor(localGroupSize)
+                  }}
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -5 }}
+                >
+                  {getSizeDescription(localGroupSize)}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+            
+            {/* Custom Slider with Radix UI */}
+            <div className="px-2">
+              <div className="relative h-12 flex items-center">
+                {/* Minus button */}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8 rounded-full border-muted shrink-0"
+                  onClick={decrementSize}
+                  disabled={localGroupSize <= MIN_SIZE}
+                  aria-label="Decrease group size"
+                >
+                  <Minus className="h-3.5 w-3.5" />
+                </Button>
+                
+                {/* Slider component using Radix UI for better accessibility */}
+                <div className="px-3 flex-1">
+                  <Slider.Root
+                    className="relative flex items-center select-none touch-none w-full h-8"
+                    min={MIN_SIZE}
+                    max={MAX_SIZE}
+                    step={1}
+                    value={[localGroupSize]}
+                    onValueChange={handleSliderChange}
+                    aria-label="Group size"
+                  >
+                    <Slider.Track className="bg-muted/40 relative grow rounded-full h-1">
+                      <Slider.Range 
+                        className="absolute rounded-full h-full" 
+                        style={{ backgroundColor: getColor(localGroupSize) }}
+                      />
+                    </Slider.Track>
+                    <Slider.Thumb 
+                      className="block w-6 h-6 rounded-full bg-white focus:outline-none focus-visible:ring focus-visible:ring-offset-2 cursor-grab active:cursor-grabbing shadow-md"
+                      style={{ 
+                        boxShadow: `0 0 0 2px ${getColor(localGroupSize)}40`,
+                        outline: `2px solid ${getColor(localGroupSize)}` 
+                      }}
+                      aria-label="Group size slider thumb"
+                    >
+                      <div 
+                        className="flex items-center justify-center h-full w-full"
+                        style={{ color: getColor(localGroupSize) }}
+                      >
+                        <span className="text-xs font-medium">{localGroupSize}</span>
+                      </div>
+                    </Slider.Thumb>
+                  </Slider.Root>
+                  
+                  {/* Markers */}
+                  <div className="flex justify-between px-1.5 mt-1">
+                    {[MIN_SIZE, 6, 11, MAX_SIZE].map(mark => (
+                      <div key={mark} className="flex flex-col items-center">
+                        <span className="text-[10px] text-muted-foreground">
+                          {mark === MAX_SIZE ? `${mark}+` : mark}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Plus button */}
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8 rounded-full border-muted shrink-0"
+                  onClick={incrementSize}
+                  disabled={localGroupSize >= MAX_SIZE}
+                  aria-label="Increase group size"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
+            
+            {/* Visual representation of group */}
+            <div className="px-2">
+              <div
+                className="rounded-xl p-2 flex items-center justify-center"
+                style={{
+                  backgroundColor: `${getColor(localGroupSize)}05`,
+                  border: `1px solid ${getColor(localGroupSize)}20`
+                }}
+              >
+                <div className="flex flex-wrap justify-center gap-1 py-1">
+                  {Array.from({ length: 16 }).map((_, i) => {
+                    const isActive = i < localGroupSize;
+                    
+                    return (
+                      <motion.button
+                        key={i}
+                        type="button"
+                        className="focus:outline-none focus-visible:ring-1 focus-visible:ring-offset-1 rounded-full"
+                        onClick={() => setLocalGroupSize(i + 1)}
+                        initial={false}
+                        animate={{
+                          opacity: isActive ? 1 : 0.2,
+                          scale: isActive ? 1 : 0.85,
+                        }}
+                        transition={{ duration: 0.2 }}
+                        whileHover={{ scale: isActive ? 1.1 : 0.95 }}
+                        aria-label={`Set group size to ${i + 1}`}
+                        style={{ transformOrigin: "center" }}
+                      >
+                        <svg 
+                          width="14" 
+                          height="18" 
+                          viewBox="0 0 24 30" 
+                          fill="none" 
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <circle 
+                            cx="12" 
+                            cy="8" 
+                            r="6" 
+                            fill={getColor(isActive ? localGroupSize : 1)}
+                            opacity={isActive ? 1 : 0.3}
+                          />
+                          <path 
+                            d="M24 28C24 21.373 18.627 16 12 16C5.373 16 0 21.373 0 28" 
+                            stroke={getColor(isActive ? localGroupSize : 1)}
+                            strokeWidth="4"
+                            strokeLinecap="round"
+                            opacity={isActive ? 1 : 0.3}
+                          />
+                        </svg>
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+            
+            {/* Quick selection buttons */}
+            <div className="px-2 pt-1">
+              <p className="text-xs text-muted-foreground mb-1.5 font-medium">Quick select:</p>
+              <div className="grid grid-cols-4 gap-1.5">
+                {[1, 2, 3, 4, 6, 8, 10, 12].map((size) => (
+                  <motion.button
+                    key={size}
+                    type="button"
+                    className={cn(
+                      "py-1 rounded-lg text-xs font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1",
+                      localGroupSize === size ? "text-white" : "bg-muted/30 text-muted-foreground"
+                    )}
+                    style={{
+                      backgroundColor: localGroupSize === size ? getColor(size) : undefined
+                    }}
+                    onClick={() => handleQuickSelect(size)}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    aria-label={`Set group size to ${size}`}
+                    aria-pressed={localGroupSize === size}
+                  >
+                    {size}
+                  </motion.button>
+                ))}
+              </div>
             </div>
           </div>
-          
-          {/* Plus button */}
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-9 w-9 rounded-full border-muted shrink-0"
-            onClick={incrementSize}
-            disabled={localGroupSize >= MAX_SIZE}
-            aria-label="Increase group size"
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
-        </div>
-      </div>
-      
-      {/* Visual representation of group */}
-      <div className="px-4 sm:px-6">
-        <div
-          className="rounded-xl p-3 flex items-center justify-center"
-          style={{
-            backgroundColor: `${getColor(localGroupSize)}05`,
-            border: `1px solid ${getColor(localGroupSize)}20`
-          }}
-        >
-          <div className="flex flex-wrap justify-center gap-1.5 py-2">
-            {Array.from({ length: 16 }).map((_, i) => {
-              const isActive = i < localGroupSize;
-              
-              return (
-                <motion.button
-                  key={i}
-                  type="button"
-                  className="focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 rounded-full"
-                  onClick={() => setLocalGroupSize(i + 1)}
-                  initial={false}
-                  animate={{
-                    opacity: isActive ? 1 : 0.2,
-                    scale: isActive ? 1 : 0.85,
-                  }}
-                  transition={{ duration: 0.2 }}
-                  whileHover={{ scale: isActive ? 1.1 : 0.95 }}
-                  aria-label={`Set group size to ${i + 1}`}
-                  style={{ transformOrigin: "center" }}
-                >
-                  <svg 
-                    width="16" 
-                    height="20" 
-                    viewBox="0 0 24 30" 
-                    fill="none" 
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <circle 
-                      cx="12" 
-                      cy="8" 
-                      r="6" 
-                      fill={getColor(isActive ? localGroupSize : 1)}
-                      opacity={isActive ? 1 : 0.3}
-                    />
-                    <path 
-                      d="M24 28C24 21.373 18.627 16 12 16C5.373 16 0 21.373 0 28" 
-                      stroke={getColor(isActive ? localGroupSize : 1)}
-                      strokeWidth="4"
-                      strokeLinecap="round"
-                      opacity={isActive ? 1 : 0.3}
-                    />
-                  </svg>
-                </motion.button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-      
-      {/* Quick selection buttons */}
-      <div className="px-4 sm:px-6 pt-1">
-        <p className="text-xs text-muted-foreground mb-2 font-medium">Quick select:</p>
-        <div className="grid grid-cols-5 gap-2">
-          {[1, 2, 4, 6, 8, 10, 12, 14, 16].map((size) => (
-            <motion.button
-              key={size}
-              type="button"
-              className={cn(
-                "py-2 rounded-lg text-xs font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1",
-                localGroupSize === size ? "text-white" : "bg-muted/30 text-muted-foreground"
-              )}
-              style={{
-                backgroundColor: localGroupSize === size ? getColor(size) : undefined
-              }}
-              onClick={() => handleQuickSelect(size)}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              aria-label={`Set group size to ${size}`}
-              aria-pressed={localGroupSize === size}
-            >
-              {size}
-            </motion.button>
-          ))}
-        </div>
+        </ScrollArea>
       </div>
       
       {/* Footer with action buttons */}
-      <DialogFooter className="pt-4 border-t mt-4 flex justify-between gap-4">
+      <DialogFooter className="pt-3 border-t mt-3 flex justify-between gap-4 shrink-0">
         <Button 
           variant="ghost" 
           onClick={onClose}
-          className="text-sm font-normal"
+          className="h-8 text-sm font-normal"
           aria-label="Cancel and close dialog"
         >
           Cancel
         </Button>
         <Button
           onClick={handleApply}
-          className="gap-1.5 px-5"
+          className="h-8 gap-1.5 px-5"
           style={{
             backgroundColor: getColor(localGroupSize),
           }}
           aria-label={`Apply group size of ${localGroupSize}`}
         >
-          <Check className="h-4 w-4" />
+          <Check className="h-3.5 w-3.5" />
           Apply
         </Button>
       </DialogFooter>

@@ -24,7 +24,7 @@ export const DesktopNavItems = () => {
         {/* Main navigation items */}
         {mainNavItems.map((item) => (
           <NavigationMenuItem key={item.name}>
-            <Link href={item.href} legacyBehavior passHref>
+            <Link href={item.href} passHref>
               <NavigationMenuLink 
                 className={cn(
                   "flex px-4 h-10 items-center justify-center rounded-full text-sm font-medium",
