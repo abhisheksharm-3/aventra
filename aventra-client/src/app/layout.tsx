@@ -1,7 +1,8 @@
-import type { ReactNode } from "react"
-import "@/app/globals.css"
-import { IBM_Plex_Sans, Fraunces } from "next/font/google"
-import { ThemeProvider } from "@/components/theme-provider"
+import type { ReactNode } from "react";
+import "@/app/globals.css";
+import { IBM_Plex_Sans, Fraunces } from "next/font/google";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Providers } from "./providers";
 
 // IBM Plex Sans for content text
 const ibmPlexSans = IBM_Plex_Sans({
@@ -9,32 +10,31 @@ const ibmPlexSans = IBM_Plex_Sans({
   weight: ["300", "400", "500", "600"],
   variable: "--font-sans",
   display: "swap",
-})
+});
 
 // Fraunces for headings
 const fraunces = Fraunces({
   subsets: ["latin"],
   variable: "--font-serif",
   display: "swap",
-})
+});
 
 export const metadata = {
   title: "Aventra | Discover Extraordinary Experiences",
-  description: "Find and book unique experiences - from epic trips to nights out and everything in between.",
-}
+  description:
+    "Find and book unique experiences - from epic trips to nights out and everything in between.",
+};
 
-export default function RootLayout({
-  children,
-}: {
-  children: ReactNode
-}) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning className="hide-scrollbar">
-      <body className={`${ibmPlexSans.variable} ${fraunces.variable} font-sans antialiased`}>
+      <body
+        className={`${ibmPlexSans.variable} ${fraunces.variable} font-sans antialiased`}
+      >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          {children}
+          <Providers>{children}</Providers>
         </ThemeProvider>
       </body>
     </html>
-  )
+  );
 }
