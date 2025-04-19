@@ -5,6 +5,7 @@ import { verifySession } from "./controllers/AuthController";
 const publicRoutes = [
   "/login",
   "/dashboard", //FIX: ADDED FOR TESTING PURPOSES
+  "/plan", //FIX: ADDED FOR TESTING PURPOSES
   "/forgot-password",
   "/api/auth/oauth/google",
   "/api/auth/oauth/github",
