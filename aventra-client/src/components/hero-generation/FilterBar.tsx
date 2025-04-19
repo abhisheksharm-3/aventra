@@ -12,17 +12,30 @@ import {
 import { 
   MapPin, Calendar, Users, IndianRupee, Compass, Check 
 } from "lucide-react";
+import { BudgetOption} from "@/types/hero";
 import { LocationFilter } from "./location-filter";
 import { DateFilter } from "./date-filter";
 import { GroupSizeFilter } from "./group-size-filter";
 import { BudgetFilter } from "./budget-filter";
 import { TravelStyleFilter } from "./travel-style-filter";
+import { JSX } from "react";
 
-export const FilterBar = () => {
+/**
+ * @component FilterBar
+ * @description An interactive filter bar that allows users to refine their trip search
+ * with various criteria including location, dates, group size, budget, and travel style.
+ * Each filter opens a dialog with more detailed options.
+ * @returns {JSX.Element} Rendered filter bar component
+ */
+export const FilterBar = (): JSX.Element => {
   const { filterOptions, openDialog, setFilterOptions, setOpenDialog } = useSearchStore();
 
-  // Format date to display in button
-  const formatDateRange = (range: { from: Date; to: Date } | null) => {
+  /**
+   * Formats a date range for display in the filter button
+   * @param {Object | null} range - Date range object with from and to properties
+   * @returns {string | null} - Formatted date range string or null if no range
+   */
+  const formatDateRange = (range: { from: Date; to: Date } | null): string | null => {
     if (!range || !range.from) return null;
 
     const fromDate = format(range.from, "MMM d");
@@ -31,18 +44,17 @@ export const FilterBar = () => {
     return toDate ? `${fromDate} - ${toDate}` : fromDate;
   };
 
-  // Function to toggle dialogs
-  const toggleDialog = (name: string) => {
-    if (openDialog === name) {
-      setOpenDialog(null);
-    } else {
-      setOpenDialog(name);
-    }
+  /**
+   * Toggles the dialog open/closed state
+   * @param {string} name - The name of the dialog to toggle
+   */
+  const toggleDialog = (name: string): void => {
+    setOpenDialog(openDialog === name ? null : name);
   };
 
   return (
-    <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2 mt-4">
-      <TooltipProvider delayDuration={300}>
+    <div className="flex flex-wrap justify-center gap-2 mt-4">
+      <TooltipProvider delayDuration={200}>
         {/* Location Filter */}
         <Dialog 
           open={openDialog === "location"} 
@@ -56,13 +68,14 @@ export const FilterBar = () => {
                   size="sm"
                   className={cn(
                     "rounded-full bg-background/80 border-border/40 hover:bg-accent/60 px-3 sm:px-4",
-                    (openDialog === "location" || filterOptions.location) &&
-                      "bg-primary/20 border-primary/30"
+                    "transition-all duration-200",
+                    (openDialog === "location" || !!filterOptions.location) && 
+                      "bg-primary/20 border-primary/30 shadow-sm"
                   )}
                   onClick={() => toggleDialog("location")}
                 >
-                  <MapPin className="h-3.5 w-3.5 mr-1" />
-                  <span className="hidden xs:inline">
+                  <MapPin className="h-3.5 w-3.5" />
+                  <span className="hidden xs:inline ml-1 mr-0.5">
                     {filterOptions.location || "Location"}
                   </span>
                   {filterOptions.location && (
@@ -73,16 +86,21 @@ export const FilterBar = () => {
                 </Button>
               </DialogTrigger>
             </TooltipTrigger>
-            <TooltipContent>{filterOptions.location || "Select location"}</TooltipContent>
+            <TooltipContent side="bottom" className="text-xs">
+              {filterOptions.location || "Select location"}
+            </TooltipContent>
           </Tooltip>
+          
           <DialogContent className="sm:max-w-[425px]">
-            <LocationFilter
-              onClose={() => setOpenDialog(null)}
-              selectedLocation={filterOptions.location}
-              setSelectedLocation={(location) =>
-                setFilterOptions({ location })
-              }
-            />
+            {openDialog === "location" && (
+              <LocationFilter
+                onClose={() => setOpenDialog(null)}
+                selectedLocation={filterOptions.location}
+                setSelectedLocation={(location: string | null) =>
+                  setFilterOptions({ location })
+                }
+              />
+            )}
           </DialogContent>
         </Dialog>
 
@@ -99,13 +117,14 @@ export const FilterBar = () => {
                   size="sm"
                   className={cn(
                     "rounded-full bg-background/80 border-border/40 hover:bg-accent/60 px-3 sm:px-4",
-                    (openDialog === "dates" || filterOptions.dateRange) &&
-                      "bg-primary/20 border-primary/30"
+                    "transition-all duration-200",
+                    (openDialog === "dates" || !!filterOptions.dateRange) && 
+                      "bg-primary/20 border-primary/30 shadow-sm"
                   )}
                   onClick={() => toggleDialog("dates")}
                 >
-                  <Calendar className="h-3.5 w-3.5 mr-1" />
-                  <span className="hidden xs:inline">
+                  <Calendar className="h-3.5 w-3.5" />
+                  <span className="hidden xs:inline ml-1 mr-0.5">
                     {formatDateRange(filterOptions.dateRange) || "Dates"}
                   </span>
                   {filterOptions.dateRange && (
@@ -116,16 +135,21 @@ export const FilterBar = () => {
                 </Button>
               </DialogTrigger>
             </TooltipTrigger>
-            <TooltipContent>{formatDateRange(filterOptions.dateRange) || "Select dates"}</TooltipContent>
+            <TooltipContent side="bottom" className="text-xs">
+              {formatDateRange(filterOptions.dateRange) || "Select dates"}
+            </TooltipContent>
           </Tooltip>
+          
           <DialogContent className="sm:max-w-[425px]">
-            <DateFilter
-              onClose={() => setOpenDialog(null)}
-              selectedDate={filterOptions.dateRange}
-              setSelectedDate={(dateRange) =>
-                setFilterOptions({ dateRange })
-              }
-            />
+            {openDialog === "dates" && (
+              <DateFilter
+                onClose={() => setOpenDialog(null)}
+                selectedDate={filterOptions.dateRange}
+                setSelectedDate={(dateRange: { from: Date; to: Date } | null) =>
+                  setFilterOptions({ dateRange })
+                }
+              />
+            )}
           </DialogContent>
         </Dialog>
 
@@ -142,29 +166,34 @@ export const FilterBar = () => {
                   size="sm"
                   className={cn(
                     "rounded-full bg-background/80 border-border/40 hover:bg-accent/60 px-3 sm:px-4",
-                    (openDialog === "group" || filterOptions.groupSize !== 2) &&
-                      "bg-primary/20 border-primary/30"
+                    "transition-all duration-200",
+                    (openDialog === "group" || filterOptions.groupSize !== 2) && 
+                      "bg-primary/20 border-primary/30 shadow-sm"
                   )}
                   onClick={() => toggleDialog("group")}
                 >
-                  <Users className="h-3.5 w-3.5 mr-1" />
-                  <span className="hidden xs:inline">
-                    {filterOptions.groupSize}{" "}
-                    {filterOptions.groupSize === 1 ? "Person" : "People"}
+                  <Users className="h-3.5 w-3.5" />
+                  <span className="hidden xs:inline ml-1 mr-0.5">
+                    {`${filterOptions.groupSize} ${filterOptions.groupSize === 1 ? "Person" : "People"}`}
                   </span>
                 </Button>
               </DialogTrigger>
             </TooltipTrigger>
-            <TooltipContent>{filterOptions.groupSize} {filterOptions.groupSize === 1 ? "Person" : "People"}</TooltipContent>
+            <TooltipContent side="bottom" className="text-xs">
+              {`${filterOptions.groupSize} ${filterOptions.groupSize === 1 ? "Person" : "People"}`}
+            </TooltipContent>
           </Tooltip>
+          
           <DialogContent className="sm:max-w-[425px]">
-            <GroupSizeFilter
-              onClose={() => setOpenDialog(null)}
-              groupSize={filterOptions.groupSize}
-              setGroupSize={(groupSize) =>
-                setFilterOptions({ groupSize })
-              }
-            />
+            {openDialog === "group" && (
+              <GroupSizeFilter
+                onClose={() => setOpenDialog(null)}
+                groupSize={filterOptions.groupSize}
+                setGroupSize={(groupSize: number) =>
+                  setFilterOptions({ groupSize })
+                }
+              />
+            )}
           </DialogContent>
         </Dialog>
 
@@ -181,16 +210,15 @@ export const FilterBar = () => {
                   size="sm"
                   className={cn(
                     "rounded-full bg-background/80 border-border/40 hover:bg-accent/60 px-3 sm:px-4",
-                    (openDialog === "budget" || filterOptions.budget) &&
-                      "bg-primary/20 border-primary/30"
+                    "transition-all duration-200",
+                    (openDialog === "budget" || !!filterOptions.budget) && 
+                      "bg-primary/20 border-primary/30 shadow-sm"
                   )}
                   onClick={() => toggleDialog("budget")}
                 >
-                  <IndianRupee className="h-3.5 w-3.5 mr-1" />
-                  <span className="hidden xs:inline">
-                    {filterOptions.budget
-                      ? filterOptions.budget.label
-                      : "Budget"}
+                  <IndianRupee className="h-3.5 w-3.5" />
+                  <span className="hidden xs:inline ml-1 mr-0.5">
+                    {filterOptions.budget ? filterOptions.budget.label : "Budget"}
                   </span>
                   {filterOptions.budget && (
                     <Badge variant="secondary" className="ml-1 h-5 px-1.5">
@@ -200,16 +228,21 @@ export const FilterBar = () => {
                 </Button>
               </DialogTrigger>
             </TooltipTrigger>
-            <TooltipContent>{filterOptions.budget ? filterOptions.budget.label : "Select budget"}</TooltipContent>
+            <TooltipContent side="bottom" className="text-xs">
+              {filterOptions.budget ? filterOptions.budget.label : "Select budget"}
+            </TooltipContent>
           </Tooltip>
+          
           <DialogContent className="sm:max-w-[425px]">
-            <BudgetFilter
-              onClose={() => setOpenDialog(null)}
-              selectedBudget={filterOptions.budget}
-              setSelectedBudget={(budget) =>
-                setFilterOptions({ budget })
-              }
-            />
+            {openDialog === "budget" && (
+              <BudgetFilter
+                onClose={() => setOpenDialog(null)}
+                selectedBudget={filterOptions.budget}
+                setSelectedBudget={(budget: BudgetOption | null) =>
+                  setFilterOptions({ budget })
+                }
+              />
+            )}
           </DialogContent>
         </Dialog>
 
@@ -226,19 +259,17 @@ export const FilterBar = () => {
                   size="sm"
                   className={cn(
                     "rounded-full bg-background/80 border-border/40 hover:bg-accent/60 px-3 sm:px-4",
-                    (openDialog === "style" ||
-                      filterOptions.travelStyle.length > 0) &&
-                      "bg-primary/20 border-primary/30"
+                    "transition-all duration-200",
+                    (openDialog === "style" || filterOptions.travelStyle.length > 0) && 
+                      "bg-primary/20 border-primary/30 shadow-sm"
                   )}
                   onClick={() => toggleDialog("style")}
                 >
-                  <Compass className="h-3.5 w-3.5 mr-1" />
-                  <span className="hidden xs:inline">
+                  <Compass className="h-3.5 w-3.5" />
+                  <span className="hidden xs:inline ml-1 mr-0.5">
                     {filterOptions.travelStyle.length > 0
                       ? `${filterOptions.travelStyle.length} ${
-                          filterOptions.travelStyle.length === 1
-                            ? "Style"
-                            : "Styles"
+                          filterOptions.travelStyle.length === 1 ? "Style" : "Styles"
                         }`
                       : "Travel Style"}
                   </span>
@@ -250,20 +281,23 @@ export const FilterBar = () => {
                 </Button>
               </DialogTrigger>
             </TooltipTrigger>
-            <TooltipContent>
+            <TooltipContent side="bottom" className="text-xs">
               {filterOptions.travelStyle.length 
                 ? `${filterOptions.travelStyle.length} travel ${filterOptions.travelStyle.length === 1 ? "style" : "styles"} selected`
                 : "Select travel styles"}
             </TooltipContent>
           </Tooltip>
+          
           <DialogContent className="sm:max-w-[425px]">
-            <TravelStyleFilter
-              onClose={() => setOpenDialog(null)}
-              selectedStyles={filterOptions.travelStyle}
-              setSelectedStyles={(styles) =>
-                setFilterOptions({ travelStyle: styles })
-              }
-            />
+            {openDialog === "style" && (
+              <TravelStyleFilter
+                onClose={() => setOpenDialog(null)}
+                selectedStyles={filterOptions.travelStyle}
+                setSelectedStyles={(styles: string[]) =>
+                  setFilterOptions({ travelStyle: styles })
+                }
+              />
+            )}
           </DialogContent>
         </Dialog>
       </TooltipProvider>

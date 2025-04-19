@@ -1,4 +1,4 @@
-import { AutocompleteOptions } from "@/lib/services/gemini/service";
+import { AutocompleteOptions } from "@/lib/services/gemini/autocomplete-service";
 
 /**
  * Generate a prompt template for autocomplete

@@ -3,21 +3,35 @@
 import { FormEvent } from "react";
 import { motion } from "framer-motion";
 import { Sparkles } from "lucide-react";
+
+// Local components
 import { Background, WaveDecoration } from "../common/hero-bg";
-import { useSearchStore } from "@/stores/searchStore";
-import { useSearchQuery } from "@/hooks/useSearchQuery";
 import { Headline } from "../hero-generation/headline";
 import { SearchBar } from "../hero-generation/SearchBar";
 import { FilterBar } from "../hero-generation/FilterBar";
 import { TrendingSection } from "../hero-generation/TrendingSection";
 import { FeaturedSection } from "../hero-generation/FeaturedSection";
+
+// Hooks and stores
+import { useSearchStore } from "@/stores/searchStore";
+import { useSearchQuery } from "@/hooks/useSearchQuery";
 import { useRecentSearches } from "@/hooks/useRecentSearches";
 
+/**
+ * @component HeroSection
+ * @description The main hero section of the landing page featuring an interactive travel itinerary generator.
+ * Includes a search bar with filters, trending destinations, featured trips, and animated elements.
+ * @returns {JSX.Element} Rendered hero section with search functionality
+ */
 export default function HeroSection() {
   const { searchQuery, filterOptions, setIsGenerating } = useSearchStore();
   const { saveSearch } = useRecentSearches();
   const { mutate: generateItinerary } = useSearchQuery();
 
+  /**
+   * Handles the search form submission
+   * @param {FormEvent} e - The form submission event
+   */
   const handleSearch = async (e: FormEvent) => {
     e.preventDefault();
     setIsGenerating(true);

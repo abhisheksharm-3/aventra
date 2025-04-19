@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
-import { MapPin, Search, X, Check, Globe, History } from "lucide-react";
+import { useState, useRef } from "react";
+import { MapPin, Search, X, Check, Globe, History, Sparkles } from "lucide-react";
 import { Command, CommandList, CommandGroup, CommandItem } from "@/components/ui/command";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,58 +11,72 @@ import { LocationFilterProps } from "@/types/hero";
 import { popularLocations, locationsByRegion } from "@/lib/constants/hero";
 import { DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { useLocationSuggestions } from "@/hooks/useLocationSuggestions";
+import { useSearchStore } from "@/stores/searchStore";
 
+/**
+ * @component LocationFilter
+ * @description A comprehensive location selection component with AI-powered suggestions,
+ * popular destinations, region-based browsing, and search functionality.
+ */
 export const LocationFilter: React.FC<LocationFilterProps> = ({ 
   onClose, 
   selectedLocation, 
-  setSelectedLocation,
-  recentSearches = ["Bali, Indonesia", "Kyoto, Japan"] 
+  setSelectedLocation
 }) => {
+  const { 
+    recentLocationSearches, 
+    addRecentLocationSearch, 
+    removeRecentLocationSearch, 
+    clearRecentLocationSearches 
+  } = useSearchStore();
+  
   const [searchValue, setSearchValue] = useState("");
-  const [localRecents, setLocalRecents] = useState(recentSearches);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("popular");
   const [tempSelection, setTempSelection] = useState<string | null>(selectedLocation);
   const inputRef = useRef<HTMLInputElement>(null);
   
-  // Focus input on mount for immediate search
-  useEffect(() => {
-    setTimeout(() => {
-      inputRef.current?.focus();
-    }, 100);
-  }, []);
+  // Get AI-powered location suggestions using our dedicated hook
+  const { suggestions: aiLocationSuggestions, loading: suggestionsLoading } = 
+    useLocationSuggestions(searchValue);
   
-  // Filter locations by search value
-  const filteredLocations = useMemo(() => {
-    if (!searchValue.trim()) return [];
-    
-    return popularLocations.filter(
-      location => location.toLowerCase().includes(searchValue.toLowerCase())
-    );
-  }, [searchValue]);
+  /**
+   * Filter existing locations based on search input
+   */
+  const filteredLocations = !searchValue.trim() 
+    ? [] 
+    : popularLocations.filter(
+        location => location.toLowerCase().includes(searchValue.toLowerCase())
+      );
   
-  // Handle adding to recent searches
+  /**
+   * Handle location selection and update recent searches
+   */
   const handleLocationSelect = (location: string) => {
     setTempSelection(location);
-    if (activeTab === "search" && !localRecents.includes(location)) {
-      setLocalRecents(prev => [location, ...prev.slice(0, 4)]);
+    
+    // Add to recent searches when selected from search tab
+    if (activeTab === "search") {
+      addRecentLocationSearch(location);
     }
   };
   
-  // Clear all recent searches
-  const clearRecentSearches = () => {
-    setLocalRecents([]);
-  };
-  
-  // Apply selected location
+  /**
+   * Apply the selected location and close the dialog
+   */
   const handleApply = () => {
     if (tempSelection) {
       setSelectedLocation(tempSelection);
+      // Always add the final selection to recent location searches
+      addRecentLocationSearch(tempSelection);
     }
     onClose();
   };
   
-  // Get location icon based on region
+  /**
+   * Get appropriate region icon based on region name
+   */
   const getRegionIcon = (region: string) => {
     switch (region) {
       case "Europe":
@@ -204,7 +218,11 @@ export const LocationFilter: React.FC<LocationFilterProps> = ({
         <TabsContent value="search" className="mt-2 space-y-4">
           <div className={`relative rounded-md border ${isSearchFocused ? 'ring-2 ring-ring ring-offset-1' : ''} transition-all duration-200`}>
             <div className="absolute left-2.5 top-2.5 text-muted-foreground">
-              <Search className="h-4 w-4" />
+              {suggestionsLoading ? (
+                <div className="animate-spin h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
+              ) : (
+                <Search className="h-4 w-4" />
+              )}
             </div>
             
             <Input
@@ -218,17 +236,18 @@ export const LocationFilter: React.FC<LocationFilterProps> = ({
             />
           </div>
           
+          {/* Combined search results */}
           {searchValue.trim() !== "" && (
             <div className="border rounded-md overflow-hidden">
               <div className="py-1.5 px-3 border-b bg-muted/20 flex items-center justify-between">
                 <span className="text-sm font-medium">Search results</span>
                 <Badge variant="outline" className="text-xs">
-                  {filteredLocations.length} found
+                  {aiLocationSuggestions.length + filteredLocations.length} found
                 </Badge>
               </div>
               
-              <ScrollArea className="h-[200px]">
-                {filteredLocations.length === 0 ? (
+              <ScrollArea className="h-[150px]">
+                {aiLocationSuggestions.length === 0 && filteredLocations.length === 0 ? (
                   <div className="p-8 text-center">
                     <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-muted mb-3">
                       <MapPin className="h-5 w-5 text-muted-foreground" />
@@ -242,6 +261,37 @@ export const LocationFilter: React.FC<LocationFilterProps> = ({
                   <Command>
                     <CommandList>
                       <CommandGroup>
+                        {aiLocationSuggestions.length > 0 && (
+                          <div className="py-1 px-3 text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+                            <Sparkles className="h-3 w-3" />
+                            AI Suggestions
+                          </div>
+                        )}
+                        {aiLocationSuggestions.map((suggestion, index) => (
+                          <CommandItem
+                            key={`ai-${index}`}
+                            onSelect={() => handleLocationSelect(suggestion)}
+                            className={`flex items-center gap-2 py-2.5 ${tempSelection === suggestion ? 'bg-accent' : ''}`}
+                          >
+                            <div className="flex items-center justify-center h-5 w-5 rounded-full bg-primary/10">
+                              <Sparkles className="h-3 w-3 text-primary" />
+                            </div>
+                            <span className="font-medium">{suggestion}</span>
+                            {tempSelection === suggestion && (
+                              <Check className="h-4 w-4 ml-auto text-primary" />
+                            )}
+                          </CommandItem>
+                        ))}
+                        
+                        {aiLocationSuggestions.length > 0 && filteredLocations.length > 0 && (
+                          <div className="h-px bg-border my-1.5" />
+                        )}
+                        
+                        {filteredLocations.length > 0 && (
+                          <div className="py-1 px-3 text-xs font-medium text-muted-foreground">
+                            Standard Results
+                          </div>
+                        )}
                         {filteredLocations.map(location => (
                           <CommandItem
                             key={location}
@@ -263,33 +313,44 @@ export const LocationFilter: React.FC<LocationFilterProps> = ({
             </div>
           )}
           
-          {/* Recent searches */}
-          {localRecents.length > 0 && (
+          {/* Recent location searches */}
+          {recentLocationSearches.length > 0 && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <History className="h-3.5 w-3.5 text-muted-foreground" />
-                  <h4 className="text-sm font-medium text-muted-foreground">Recent searches</h4>
+                  <h4 className="text-sm font-medium text-muted-foreground">Recent destinations</h4>
                 </div>
                 <Button 
                   variant="ghost" 
                   size="sm" 
                   className="h-6 w-6 p-0" 
-                  onClick={clearRecentSearches}
+                  onClick={clearRecentLocationSearches}
                 >
                   <X className="h-3.5 w-3.5 text-muted-foreground" />
                 </Button>
               </div>
               <div className="flex flex-wrap gap-1.5">
-                {localRecents.map(loc => (
+                {recentLocationSearches.map(location => (
                   <Badge 
-                    key={loc} 
-                    variant={tempSelection === loc ? "default" : "outline"}
-                    className="cursor-pointer hover:bg-accent transition-colors py-1.5"
-                    onClick={() => handleLocationSelect(loc)}
+                    key={location} 
+                    variant={tempSelection === location ? "default" : "outline"}
+                    className="cursor-pointer hover:bg-accent transition-colors py-1.5 group"
+                    onClick={() => handleLocationSelect(location)}
                   >
                     <MapPin className="h-3 w-3 mr-1 inline-block" />
-                    {loc}
+                    {location}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-4 w-4 p-0 ml-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeRecentLocationSearch(location);
+                      }}
+                    >
+                      <X className="h-2.5 w-2.5" />
+                    </Button>
                   </Badge>
                 ))}
               </div>

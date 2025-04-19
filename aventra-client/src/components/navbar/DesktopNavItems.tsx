@@ -13,8 +13,14 @@ import {
 } from "@/components/ui/navigation-menu";
 import { mainNavItems } from "@/lib/constants/navigation";
 
+/**
+ * @component DesktopNavItems
+ * @description Renders the main navigation items for desktop view including dropdowns
+ * and animated hover effects.
+ * @returns {JSX.Element} The desktop navigation menu
+ */
 export const DesktopNavItems = () => {
-  const [activeItem, setActiveItem] = useState("");
+  const [activeItem, setActiveItem] = useState<string>("");
 
   return (
     <NavigationMenu className="hidden md:flex">
@@ -24,17 +30,18 @@ export const DesktopNavItems = () => {
         {/* Main navigation items */}
         {mainNavItems.map((item) => (
           <NavigationMenuItem key={item.name}>
-            <Link href={item.href} passHref>
-              <NavigationMenuLink 
-                className={cn(
-                  "flex px-4 h-10 items-center justify-center rounded-full text-sm font-medium",
-                  "hover:bg-accent/40 hover:text-accent-foreground",
-                  "transition-all duration-200 border border-transparent hover:border-border/20",
-                  "relative group"
-                )}
-                onMouseEnter={() => setActiveItem(item.name)}
-                onMouseLeave={() => setActiveItem("")}
-              >
+            <NavigationMenuLink 
+              asChild
+              className={cn(
+                "flex px-4 h-10 items-center justify-center rounded-full text-sm font-medium",
+                "hover:bg-accent/40 hover:text-accent-foreground",
+                "transition-all duration-200 border border-transparent hover:border-border/20",
+                "relative group"
+              )}
+              onMouseEnter={() => setActiveItem(item.name)}
+              onMouseLeave={() => setActiveItem("")}
+            >
+              <Link href={item.href}>
                 {item.name}
                 <motion.div 
                   className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 h-0.5 
@@ -43,8 +50,8 @@ export const DesktopNavItems = () => {
                   animate={{ width: activeItem === item.name ? '60%' : 0 }}
                   transition={{ duration: 0.2 }}
                 />
-              </NavigationMenuLink>
-            </Link>
+              </Link>
+            </NavigationMenuLink>
           </NavigationMenuItem>
         ))}
       </NavigationMenuList>

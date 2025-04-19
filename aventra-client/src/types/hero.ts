@@ -1,19 +1,9 @@
-export interface FilterButtonProps {
-  icon: React.ReactNode;
-  label: string;
-  isSelected?: boolean;
-  onClick: () => void;
-  isLoading?: boolean;
-  count?: number;
-  badge?: string | number;
-  disabled?: boolean;
-  tooltipContent?: string;
-  className?: string;
-}
-
 export interface TrendingItemProps {
   icon: string;
   name: string;
+  className?: string;
+  tabIndex?: number;
+  onKeyDown?: (e: { key: string; preventDefault: () => void }) => void;
   onClick: () => void;
 }
 
@@ -77,4 +67,23 @@ export interface LocationFilterProps {
   selectedLocation: string | null;
   setSelectedLocation: (location: string | null) => void;
   recentSearches?: string[];
+}
+
+export interface TrendingSectionProps {
+  className?: string;
+  compact?: boolean;
+  maxItems?: number;
+}
+
+/**
+ * Interface for Featured Section component props
+ * @interface FeaturedSectionProps
+ * @property {string} [className] - Optional CSS class to apply to the component
+ * @property {number} [maxItems=6] - Maximum number of destinations to display
+ * @property {string} [viewAllLink="/destinations"] - Link for the "View all" button
+ */
+export interface FeaturedSectionProps {
+  className?: string;
+  maxItems?: number;
+  viewAllLink?: string;
 }

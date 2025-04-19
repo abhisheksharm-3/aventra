@@ -2,9 +2,9 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { SearchState } from '@/types/searchStore';
 
-
 // Max number of recent searches to store
 const MAX_RECENT_SEARCHES = 10;
+const MAX_LOCATION_SEARCHES = 8;
 
 export const useSearchStore = create<SearchState>()(
   persist(
@@ -21,6 +21,7 @@ export const useSearchStore = create<SearchState>()(
       isGenerating: false,
       openDialog: null,
       recentSearches: [],
+      recentLocationSearches: [], // New field for location searches
       
       setSearchQuery: (query) => set({ searchQuery: query }),
       setFilterOptions: (options) => set((state) => ({ 
@@ -28,8 +29,7 @@ export const useSearchStore = create<SearchState>()(
       })),
       setIsGenerating: (isGenerating) => set({ isGenerating }),
       setOpenDialog: (dialog) => set({ openDialog: dialog }),
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      resetFilters: () => set((state) => ({ 
+      resetFilters: () => set(() => ({ 
         filterOptions: {
           location: null,
           dateRange: null,
@@ -40,7 +40,7 @@ export const useSearchStore = create<SearchState>()(
         }
       })),
       
-      // Recent searches management
+      // General recent searches management
       addRecentSearch: (query) => set((state) => {
         // Don't add empty queries
         if (!query.trim()) return state;
@@ -57,17 +57,38 @@ export const useSearchStore = create<SearchState>()(
       }),
       
       removeRecentSearch: (query) => set((state) => ({
-        recentSearches: state.recentSearches.filter(
-          (item) => item !== query
-        )
+        recentSearches: state.recentSearches.filter(item => item !== query)
       })),
       
       clearRecentSearches: () => set({ recentSearches: [] }),
+      
+      // Location-specific recent searches management
+      addRecentLocationSearch: (location) => set((state) => {
+        // Don't add empty locations
+        if (!location.trim()) return state;
+        
+        // Create a new array without the current location (to avoid duplicates)
+        const filteredLocations = state.recentLocationSearches.filter(
+          (item) => item.toLowerCase() !== location.toLowerCase()
+        );
+        
+        // Add the new location to the beginning and limit the array size
+        return {
+          recentLocationSearches: [location, ...filteredLocations].slice(0, MAX_LOCATION_SEARCHES)
+        };
+      }),
+      
+      removeRecentLocationSearch: (location) => set((state) => ({
+        recentLocationSearches: state.recentLocationSearches.filter(item => item !== location)
+      })),
+      
+      clearRecentLocationSearches: () => set({ recentLocationSearches: [] }),
     }),
     {
       name: 'travel-search-storage',
       partialize: (state) => ({ 
-        recentSearches: state.recentSearches 
+        recentSearches: state.recentSearches,
+        recentLocationSearches: state.recentLocationSearches // Add to persistence
       }),
     }
   )

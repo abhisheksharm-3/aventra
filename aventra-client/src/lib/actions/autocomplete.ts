@@ -1,6 +1,6 @@
 "use server";
 
-import { generateAutocompleteSuggestions } from "../services/gemini/service";
+import { generateAutocompleteSuggestions } from "../services/gemini/autocomplete-service";
 
 export async function getAutocompleteAction(query: string): Promise<{ 
     suggestions: string[], 

@@ -1,19 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, MapPin } from "lucide-react";
 import { DestinationCardProps } from "@/types/hero";
+import { cn } from "@/lib/utils";
 
+/**
+ * DestinationCard Component
+ * 
+ * An interactive card displaying a travel destination with image, name, country,
+ * and hover effects. Supports keyboard navigation for accessibility.
+ * 
+ * @param {DestinationCardProps} props - Component props
+ * @returns {JSX.Element} The rendered destination card
+ */
 export const DestinationCard: React.FC<DestinationCardProps> = ({ 
   name, 
   country, 
   image,
-  onClick 
+  onClick
 }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   
+  // Handle keyboard navigation
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onClick?.();
+    }
+  }, [onClick]);
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 15 }}
@@ -25,12 +43,7 @@ export const DestinationCard: React.FC<DestinationCardProps> = ({
       tabIndex={0}
       aria-label={`Explore ${name}, ${country}`}
       onClick={onClick}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onClick?.();
-        }
-      }}
+      onKeyDown={handleKeyDown}
     >
       {/* Gradient overlay - improved for better text contrast */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-10" />
@@ -48,7 +61,10 @@ export const DestinationCard: React.FC<DestinationCardProps> = ({
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.5 }}
         >
-          <p className="text-white font-medium text-lg leading-tight">{name}</p>
+          <div className="flex items-center gap-1">
+            <MapPin className="h-3 w-3 text-white/70 hidden sm:block" aria-hidden="true" />
+            <p className="text-white font-medium text-lg leading-tight">{name}</p>
+          </div>
           <p className="text-white/80 text-sm mt-0.5">{country}</p>
         </motion.div>
       </div>
@@ -73,19 +89,23 @@ export const DestinationCard: React.FC<DestinationCardProps> = ({
           src={image}
           alt={`${name}, ${country} destination`}
           fill
-          sizes="(max-width: 768px) 100vw, 33vw"
-          className={`object-cover transition-transform duration-500 group-hover:scale-110 ${
-            imageLoaded ? 'opacity-100' : 'opacity-0'
-          }`}
+          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          className={cn(
+            "object-cover transition-transform duration-500 group-hover:scale-110",
+            imageLoaded ? "opacity-100" : "opacity-0"
+          )}
           loading="eager"
           priority={true}
-          onLoadingComplete={() => setImageLoaded(true)}
+          onLoad={() => setImageLoaded(true)}
           quality={85}
         />
       </div>
       
       {/* Subtle border for better definition */}
       <div className="absolute inset-0 rounded-xl border border-white/5 pointer-events-none z-20" />
+
+      {/* Focus ring for accessibility */}
+      <div className="absolute inset-0 rounded-xl ring-offset-2 ring-primary/50 ring-0 focus-within:ring-2 pointer-events-none z-0" />
     </motion.div>
   );
 };

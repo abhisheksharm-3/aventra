@@ -2,13 +2,24 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Search, Sparkles, History, Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+// UI Components
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { motion, AnimatePresence } from "framer-motion";
-import { useSearchStore } from "@/stores/searchStore";
-import { useAutocomplete } from "@/hooks/useAutocomplete";
 import { SearchSuggestion } from "./search-suggestion";
 
+// Hooks and state
+import { useSearchStore } from "@/stores/searchStore";
+import { useAutocomplete } from "@/hooks/useAutocomplete";
+
+/**
+ * @component SearchBar
+ * @description An interactive search input with autocomplete suggestions and recent searches.
+ * Features include dynamic suggestions as the user types, recent search history display,
+ * animations for UI interactions, and a submit button with loading state.
+ * @returns {JSX.Element} Rendered search bar component with autocomplete functionality
+ */
 export const SearchBar = () => {
   const { searchQuery, isGenerating, setSearchQuery } = useSearchStore();
   const [isFocused, setIsFocused] = useState<boolean>(false);
@@ -19,6 +30,12 @@ export const SearchBar = () => {
   const { suggestions, loading: autocompleteLoading } = 
     useAutocomplete(searchQuery);
 
+  // Get recent searches from the store
+  const recentSearches = useSearchStore(state => state.recentSearches);
+
+  /**
+   * Handles clicks outside the search component to close dropdowns
+   */
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent | Event) => {
       if (
@@ -35,6 +52,9 @@ export const SearchBar = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  /**
+   * Handles input focus state and shows recent searches if query is empty
+   */
   const handleInputFocus = () => {
     setIsFocused(true);
     if (!searchQuery) {
@@ -44,8 +64,24 @@ export const SearchBar = () => {
     }
   };
 
-  // Get recent searches from the store
-  const recentSearches = useSearchStore(state => state.recentSearches);
+  /**
+   * Handles changes to the search input
+   * @param {React.ChangeEvent<HTMLInputElement>} e - Input change event
+   */
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    setShowRecentSearches(false);
+  };
+
+  /**
+   * Handles selection of a suggestion or recent search
+   * @param {string} value - The selected search text
+   */
+  const handleSuggestionSelect = (value: string) => {
+    setSearchQuery(value);
+    setIsFocused(false);
+    setShowRecentSearches(false);
+  };
 
   return (
     <div className="relative w-full">
@@ -73,10 +109,7 @@ export const SearchBar = () => {
               ref={inputRef}
               type="text"
               value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setShowRecentSearches(false);
-              }}
+              onChange={handleInputChange}
               onFocus={handleInputFocus}
               placeholder="Where would you like to go?"
               className="flex-1 h-14 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 text-base"
@@ -120,11 +153,7 @@ export const SearchBar = () => {
                 <SearchSuggestion
                   key={index}
                   suggestion={suggestion}
-                  onClick={() => {
-                    setSearchQuery(suggestion);
-                    setIsFocused(false);
-                    setShowRecentSearches(false);
-                  }}
+                  onClick={() => handleSuggestionSelect(suggestion)}
                   isAutocomplete={true}
                 />
               ))}
@@ -150,11 +179,7 @@ export const SearchBar = () => {
                 <SearchSuggestion
                   key={index}
                   suggestion={search}
-                  onClick={() => {
-                    setSearchQuery(search);
-                    setIsFocused(false);
-                    setShowRecentSearches(false);
-                  }}
+                  onClick={() => handleSuggestionSelect(search)}
                   isRecent={true}
                 />
               ))}
