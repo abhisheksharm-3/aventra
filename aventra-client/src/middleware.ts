@@ -3,6 +3,7 @@ import { verifySession } from "./controllers/AuthController";
 
 // Define routes that don't require authentication
 const publicRoutes = [
+  "/",
   "/login",
   "/dashboard", //FIX: ADDED FOR TESTING PURPOSES
   "/plan", //FIX: ADDED FOR TESTING PURPOSES
