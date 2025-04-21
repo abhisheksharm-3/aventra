@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifySession } from "./controllers/AuthController";
+import { checkOnboardingStatus } from "./controllers/OnboardingController";
 
 // Define routes that don't require authentication
 const publicRoutes = [
@@ -11,6 +12,12 @@ const publicRoutes = [
 
 // Define routes that should never be accessible if already authenticated
 const authRoutes = ["/login", "/forgot-password"];
+
+// Routes that are exempt from onboarding check
+const onboardingExemptRoutes = [
+  "/onboarding",
+  "/api/onboarding",
+];
 
 // Add paths for public static assets
 const publicAssetPaths = [
@@ -38,6 +45,10 @@ function isPublicRoute(path: string): boolean {
 
 function isAuthRoute(path: string): boolean {
   return authRoutes.some(route => path === route || path.startsWith(`${route}/`));
+}
+
+function isOnboardingExempt(path: string): boolean {
+  return onboardingExemptRoutes.some(route => path === route || path.startsWith(`${route}/`));
 }
 
 function isApiRoute(path: string): boolean {
@@ -70,6 +81,22 @@ export async function middleware(request: NextRequest) {
         // If the user is already authenticated and on an auth route, redirect to dashboard
         if (isAuthRoute(pathname)) {
           return NextResponse.redirect(new URL("/dashboard", request.url));
+        }
+        
+        // Check onboarding status for authenticated users
+        // Skip this check for the onboarding page itself and related API routes
+        if (!isOnboardingExempt(pathname)) {
+          const hasCompletedOnboarding = await checkOnboardingStatus();
+          
+          if (!hasCompletedOnboarding) {
+            // Redirect to onboarding if not completed
+            return NextResponse.redirect(new URL("/onboarding", request.url));
+          }
+          
+          // If user is trying to access onboarding but has already completed it
+          if (pathname === "/onboarding") {
+            return NextResponse.redirect(new URL("/dashboard", request.url));
+          }
         }
         
         // For all other routes, proceed as normal (user is authenticated)
