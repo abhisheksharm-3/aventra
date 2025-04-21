@@ -14,7 +14,6 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { SearchBar } from "@/components/hero-generation/SearchBar";
 import { FilterBar } from "@/components/hero-generation/FilterBar";
 import { ChatPlanningDialog } from "@/components/dashboard/chat-planning-dialog";
-import DashboardHeader from "@/components/dashboard/dashboard-header";
 
 export default function NewTripPage() {
   const [activeOption, setActiveOption] = useState<"form" | "chat" | null>(null);
@@ -22,9 +21,6 @@ export default function NewTripPage() {
   
   return (
     <div className="flex flex-col min-h-screen">
-      <DashboardHeader toggleSidebar={function (): void {
-        throw new Error("Function not implemented.");
-      } } />
       
       <main className="flex-1 container py-8">
         <div className="mb-8">

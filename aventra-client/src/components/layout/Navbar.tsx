@@ -3,28 +3,21 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { DesktopNavItems } from "../navbar/DesktopNavItems";
 import { ThemeToggle } from "../common/ThemeToggle";
 import { GetStartedButton } from "../common/GetStartedButton";
-import { MobileMenuToggle } from "../navbar/MobileMenuToggle";
-import { MobileMenu } from "../navbar/MobileMenu";
 import { Bell, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Input } from "@/components/ui/input";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { usePathname } from "next/navigation";
+import NavbarFlare from "../navbar/NavbarFlare";
+import { DesktopNavItems } from "../navbar/DesktopNavItems";
+import NotificationsPanel from "../navbar/NotificationsPanel";
+import SearchPanel from "../navbar/SearchPanel";
+import UserProfileMenu from "../navbar/UserProfileMenu";
+import { MobileMenuToggle } from "../navbar/MobileMenuToggle";
+import { MobileMenu } from "../navbar/MobileMenu";
 
 /**
  * Navbar Component
@@ -33,6 +26,9 @@ const Navbar = () => {
   // State management
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const navbarRef = useRef<HTMLElement>(null);
   const pathname = usePathname();
 
@@ -52,6 +48,15 @@ const Navbar = () => {
   }, []);
 
   /**
+   * Focus search input when search is shown
+   */
+  useEffect(() => {
+    if (showSearch && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [showSearch]);
+
+  /**
    * Manage body scroll behavior when mobile menu is open/closed
    */
   useEffect(() => {
@@ -62,6 +67,22 @@ const Navbar = () => {
   }, [mobileMenuOpen]);
 
   /**
+   * Close notifications when clicking outside
+   */
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showNotifications && navbarRef.current && !navbarRef.current.contains(event.target as Node)) {
+        setShowNotifications(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showNotifications]);
+
+  /**
    * Toggle mobile menu
    */
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
@@ -70,34 +91,38 @@ const Navbar = () => {
    * Close mobile menu
    */
   const closeMobileMenu = () => setMobileMenuOpen(false);
+  
+  /**
+   * Toggle notifications panel
+   */
+  const toggleNotifications = () => {
+    setShowNotifications(!showNotifications);
+    if (showSearch) setShowSearch(false);
+  };
 
   /**
-   * Navbar Flare - decorative background element
+   * Toggle search panel
    */
-  const NavbarFlare = () => (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-[400px] pointer-events-none">
-        <div
-          className="absolute top-0 left-[15%] w-[400px] h-[400px] 
-                     bg-primary/3 rounded-full blur-[100px] opacity-60 
-                     animate-blob"
-        ></div>
-        <div
-          className="absolute top-0 right-[15%] w-[400px] h-[400px] 
-                     bg-blue-500/3 rounded-full blur-[100px] opacity-60 
-                     animate-blob animation-delay-2000"
-        ></div>
-      </div>
-    </div>
-  );
+  const toggleSearch = () => {
+    setShowSearch(!showSearch);
+    if (showNotifications) setShowNotifications(false);
+  };
+
+  // Current time for the header
+  const formattedDate = new Date().toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
 
   return (
     <header
       className={cn(
-        "sticky top-0 z-50 w-full transition-all duration-300",
-        "backdrop-blur-lg border-b",
+        "sticky top-0 z-50 w-full transition-all duration-500",
+        "backdrop-blur-xl border-b",
         scrolled
-          ? "bg-background/70 border-border/20 shadow-sm"
+          ? "bg-background/80 border-border/20 shadow-sm"
           : "bg-transparent border-transparent"
       )}
       role="banner"
@@ -109,7 +134,7 @@ const Navbar = () => {
       <div className="container mx-auto px-4 md:px-6 flex h-16 items-center justify-between relative">
         {/* Logo */}
         <motion.div
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 z-10"
           whileHover={{ scale: 1.03 }}
           initial={{ opacity: 0, x: -15 }}
           animate={{ opacity: 1, x: 0 }}
@@ -145,121 +170,89 @@ const Navbar = () => {
           </motion.div>
         )}
 
-        {/* Search for dashboard */}
-        {isDashboard && (
-          <div className="hidden md:flex flex-1 justify-center">
-            <div className="relative w-full max-w-md">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search for experiences, places..."
-                className="w-full pl-8"
-              />
+        {/* Dashboard Header - Date and Welcome */}
+        {isDashboard && !showSearch && (
+          <div className="hidden md:block absolute left-1/2 transform -translate-x-1/2 text-center">
+            <div className="text-xs text-muted-foreground">
+              {formattedDate}
+            </div>
+            <div className="text-sm font-medium">
+              Welcome back, <span className="text-primary">Abhishek</span>
             </div>
           </div>
         )}
 
         {/* Navigation Actions */}
         <motion.div
-          className="flex items-center gap-2 md:gap-3"
+          className="flex items-center gap-2 md:gap-3 z-10"
           initial={{ opacity: 0, x: 15 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3 }}
         >
+          {/* Search Button (Dashboard only) */}
           {isDashboard && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="rounded-full relative"
-                >
-                  <div className="flex items-center justify-center">
-                    <Bell className="h-4 w-4" />
-                    <Badge className="absolute -top-1 -right-1 h-4 w-4 rounded-full p-0 flex items-center justify-center text-[10px]">
-                      3
-                    </Badge>
-                  </div>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-80">
-                <DropdownMenuLabel>Notifications</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <div className="max-h-80 overflow-auto">
-                  <DropdownMenuItem className="flex flex-col items-start cursor-pointer">
-                    <div className="flex w-full">
-                      <div className="flex-shrink-0 mr-3">
-                        <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                          <span className="text-blue-600 text-xs">✈️</span>
-                        </div>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium">Trip Reminder</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Your trip to Bali is in 12 days. Start packing!
-                        </p>
-                      </div>
-                      <div className="ml-3 text-xs text-muted-foreground">
-                        2h ago
-                      </div>
-                    </div>
-                  </DropdownMenuItem>
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleSearch}
+              className={cn(
+                "rounded-full relative hover:bg-background/80 transition-all",
+                showSearch && "bg-background/80"
+              )}
+              aria-label="Search"
+            >
+              <Search className="h-[18px] w-[18px] text-foreground/70" />
+            </Button>
           )}
 
+          {/* Notifications Button (Dashboard only) */}
+          {isDashboard && (
+            <div className="relative">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleNotifications}
+                className={cn(
+                  "rounded-full relative hover:bg-background/80 transition-all",
+                  showNotifications && "bg-background/80"
+                )}
+                aria-label="Notifications"
+              >
+                <div className="flex items-center justify-center">
+                  <Bell className="h-[18px] w-[18px] text-foreground/70" />
+                  <Badge className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full p-0 flex items-center justify-center text-[9px] bg-primary">
+                    3
+                  </Badge>
+                </div>
+              </Button>
+              
+              {/* Notifications Panel */}
+              <AnimatePresence>
+                {showNotifications && (
+                  <NotificationsPanel />
+                )}
+              </AnimatePresence>
+            </div>
+          )}
+
+          {/* Enhanced Search Panel */}
+          <AnimatePresence>
+            {showSearch && isDashboard && (
+              <SearchPanel searchInputRef={searchInputRef} />
+            )}
+          </AnimatePresence>
+
+          {/* Theme Toggle */}
           <ThemeToggle />
 
           {/* Show Get Started button only on non-dashboard pages */}
           {!isDashboard ? (
             <GetStartedButton />
           ) : (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 rounded-full">
-                  <div className="flex items-center justify-center">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage
-                        src="/avatars/user.png"
-                        alt="Abhishek Sharma"
-                      />
-                      <AvatarFallback>AS</AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col items-start ml-2 hidden sm:flex">
-                      <span className="text-sm font-medium">
-                        Abhishek Sharma
-                      </span>
-                      <span className="text-xs text-muted-foreground">
-                        Premium
-                      </span>
-                    </div>
-                  </div>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium">Abhishek Sharma</p>
-                    <p className="text-xs text-muted-foreground">
-                      abhisheksharm-3@gmail.com
-                    </p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuGroup>
-                  <DropdownMenuItem>Profile</DropdownMenuItem>
-                  <DropdownMenuItem>Settings</DropdownMenuItem>
-                  <DropdownMenuItem>Billing</DropdownMenuItem>
-                </DropdownMenuGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-red-600">
-                  Log out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <UserProfileMenu />
           )}
 
+          {/* Mobile Menu Toggle - Only for non-dashboard pages */}
           {!isDashboard && (
             <MobileMenuToggle
               isOpen={mobileMenuOpen}
