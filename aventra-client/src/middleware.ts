@@ -8,54 +8,49 @@ const publicRoutes = [
   "/forgot-password",
   "/api/auth/oauth/google",
   "/api/auth/oauth/github",
-  "/api/auth/callback", // Add callback route for OAuth flows
+  "/api/auth/callback",
 ];
 
 // Define routes that should never be accessible if already authenticated
 const authRoutes = ["/login", "/forgot-password"];
 
+// Add paths for public static assets
+const publicAssetPaths = [
+  "/_next/static",
+  "/_next/image",
+  "/favicon.ico", 
+  "/_vercel",
+  "/",
+  "/fonts",
+  "/videos",
+];
+
 /**
- * Check if a route is public (doesn't require authentication)
+ * Check if a path is a public asset that should bypass authentication
  * @param path - The current path
- * @returns boolean indicating if the route is public
+ * @returns boolean indicating if the path is a public asset
  */
+function isPublicAsset(path: string): boolean {
+  return publicAssetPaths.some(assetPath => path.startsWith(assetPath));
+}
+
 function isPublicRoute(path: string): boolean {
   return publicRoutes.some(route => path === route || path.startsWith(`${route}/`));
 }
 
-/**
- * Check if a route is an authentication route (login/signup pages)
- * @param path - The current path
- * @returns boolean indicating if the route is an auth route
- */
 function isAuthRoute(path: string): boolean {
   return authRoutes.some(route => path === route || path.startsWith(`${route}/`));
 }
 
-/**
- * Check if a route is an API route
- * @param path - The current path
- * @returns boolean indicating if the route is an API route
- */
 function isApiRoute(path: string): boolean {
   return path.startsWith("/api/");
 }
 
-/**
- * Middleware function that runs before requests are completed
- * Handles authentication checks and redirects
- * @param request - The incoming request
- */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Allow static assets and image optimization requests to bypass middleware
-  if (
-    pathname.startsWith("/_next/static") || 
-    pathname.startsWith("/_next/image") || 
-    pathname.includes("/favicon.ico") || 
-    pathname.includes("/_vercel")
-  ) {
+  // Allow public assets to bypass middleware completely
+  if (isPublicAsset(pathname)) {
     return NextResponse.next();
   }
 
@@ -122,12 +117,6 @@ export async function middleware(request: NextRequest) {
  */
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    "/((?!_next/static|_next/image|favicon.ico).*)",
+    "/((?!_next/static|_next/image|favicon.ico|images|assets|fonts|videos).*)",
   ],
 };
