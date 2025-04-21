@@ -10,7 +10,7 @@ import { ThemeToggle } from "../common/ThemeToggle";
 import { GetStartedButton } from "../common/GetStartedButton";
 import { MobileMenuToggle } from "../navbar/MobileMenuToggle";
 import { MobileMenu } from "../navbar/MobileMenu";
-import { Bell, Menu, Search } from "lucide-react";
+import { Bell, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
@@ -26,20 +26,16 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { usePathname } from "next/navigation";
 
-interface NavbarProps {
-  toggleSidebar?: () => void;
-}
-
 /**
  * Navbar Component
  */
-const Navbar = ({ toggleSidebar }: NavbarProps) => {
+const Navbar = () => {
   // State management
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const navbarRef = useRef<HTMLElement>(null);
   const pathname = usePathname();
-  
+
   // Check if we're on a dashboard page
   const isDashboard = pathname?.startsWith("/dashboard");
 
@@ -111,7 +107,7 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
 
       {/* Main navigation container */}
       <div className="container mx-auto px-4 md:px-6 flex h-16 items-center justify-between relative">
-        {/* Logo with optional sidebar toggle */}
+        {/* Logo */}
         <motion.div
           className="flex items-center gap-2"
           whileHover={{ scale: 1.03 }}
@@ -119,17 +115,6 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3 }}
         >
-          {isDashboard && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden"
-              onClick={toggleSidebar}
-            >
-              <Menu className="h-5 w-5" />
-              <span className="sr-only">Toggle Menu</span>
-            </Button>
-          )}
           <Link
             href="/"
             className="relative flex items-center"
@@ -159,7 +144,7 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
             <DesktopNavItems />
           </motion.div>
         )}
-        
+
         {/* Search for dashboard */}
         {isDashboard && (
           <div className="hidden md:flex flex-1 justify-center">
@@ -184,11 +169,17 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
           {isDashboard && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="rounded-full relative">
-                  <Bell className="h-4 w-4" />
-                  <Badge className="absolute -top-1 -right-1 h-4 w-4 rounded-full p-0 flex items-center justify-center text-[10px]">
-                    3
-                  </Badge>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="rounded-full relative"
+                >
+                  <div className="flex items-center justify-center">
+                    <Bell className="h-4 w-4" />
+                    <Badge className="absolute -top-1 -right-1 h-4 w-4 rounded-full p-0 flex items-center justify-center text-[10px]">
+                      3
+                    </Badge>
+                  </div>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-80">
@@ -204,7 +195,9 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium">Trip Reminder</p>
-                        <p className="text-xs text-muted-foreground mt-1">Your trip to Bali is in 12 days. Start packing!</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Your trip to Bali is in 12 days. Start packing!
+                        </p>
                       </div>
                       <div className="ml-3 text-xs text-muted-foreground">
                         2h ago
@@ -215,9 +208,9 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-          
+
           <ThemeToggle />
-          
+
           {/* Show Get Started button only on non-dashboard pages */}
           {!isDashboard ? (
             <GetStartedButton />
@@ -225,13 +218,22 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-8 rounded-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src="/avatars/user.png" alt="Abhishek Sharma" />
-                    <AvatarFallback>AS</AvatarFallback>
-                  </Avatar>
-                  <div className="flex flex-col items-start ml-2 hidden sm:flex">
-                    <span className="text-sm font-medium">Abhishek Sharma</span>
-                    <span className="text-xs text-muted-foreground">Premium</span>
+                  <div className="flex items-center justify-center">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage
+                        src="/avatars/user.png"
+                        alt="Abhishek Sharma"
+                      />
+                      <AvatarFallback>AS</AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col items-start ml-2 hidden sm:flex">
+                      <span className="text-sm font-medium">
+                        Abhishek Sharma
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        Premium
+                      </span>
+                    </div>
                   </div>
                 </Button>
               </DropdownMenuTrigger>
@@ -246,15 +248,9 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuGroup>
-                  <DropdownMenuItem>
-                    Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    Settings
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    Billing
-                  </DropdownMenuItem>
+                  <DropdownMenuItem>Profile</DropdownMenuItem>
+                  <DropdownMenuItem>Settings</DropdownMenuItem>
+                  <DropdownMenuItem>Billing</DropdownMenuItem>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="text-red-600">
@@ -263,7 +259,7 @@ const Navbar = ({ toggleSidebar }: NavbarProps) => {
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-          
+
           {!isDashboard && (
             <MobileMenuToggle
               isOpen={mobileMenuOpen}

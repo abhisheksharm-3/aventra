@@ -1,7 +1,4 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import DashboardSidebar from "@/components/dashboard/dashboard-sidebar";
+"use client"
 import StatCards from "@/components/dashboard/stat-card";
 import UpcomingExperiences from "@/components/dashboard/upcoming-experiences";
 import SavedItineraries from "@/components/dashboard/saved-itineraries";
@@ -10,26 +7,14 @@ import PastExperiencesPanel from "@/components/dashboard/past-experiences-panel"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import Navbar from "@/components/layout/Navbar";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import Layout from "@/components/layout/Layout";
 
 export default function DashboardPage() {
-  const [mounted, setMounted] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  
-  // Prevent hydration mismatch
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
   
   return (
-    <SidebarProvider>
-      <DashboardSidebar />
-      <Navbar toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
       
-      <div className="flex flex-1 h-[calc(100vh-64px)] overflow-hidden">
+      <Layout>
+        <div className="flex flex-1 h-[calc(100vh-64px)] overflow-hidden">
         
         {/* Main Content Area */}
         <div className="flex-1 overflow-auto">
@@ -114,6 +99,6 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-    </SidebarProvider>
+      </Layout>
   );
 }
