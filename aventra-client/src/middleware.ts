@@ -5,12 +5,10 @@ import { verifySession } from "./controllers/AuthController";
 const publicRoutes = [
   "/",
   "/login",
-  "/dashboard", //FIX: ADDED FOR TESTING PURPOSES
-  "/plan", //FIX: ADDED FOR TESTING PURPOSES
   "/forgot-password",
   "/api/auth/oauth/google",
   "/api/auth/oauth/github",
-  "/api/auth/callback",  // Add callback route for OAuth flows
+  "/api/auth/callback", // Add callback route for OAuth flows
 ];
 
 // Define routes that should never be accessible if already authenticated
@@ -50,15 +48,18 @@ function isApiRoute(path: string): boolean {
  */
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
-  // Skip middleware for static assets
-  if (pathname.startsWith("/_next") || 
-      pathname.includes("/favicon.ico") ||
-      pathname.includes("/_vercel")) {
+
+  // Allow static assets and image optimization requests to bypass middleware
+  if (
+    pathname.startsWith("/_next/static") || 
+    pathname.startsWith("/_next/image") || 
+    pathname.includes("/favicon.ico") || 
+    pathname.includes("/_vercel")
+  ) {
     return NextResponse.next();
   }
 
-  // Skip middleware for non-auth related API routes
+  // Allow non-auth-related API routes to bypass middleware
   if (isApiRoute(pathname) && !pathname.includes("/api/auth/")) {
     return NextResponse.next();
   }
@@ -66,14 +67,14 @@ export async function middleware(request: NextRequest) {
   // Get the user session cookie
   const sessionCookie = request.cookies.get("user-session");
   const response = NextResponse.next();
-  
+
   try {
     // Check if there's a session cookie and verify it
     if (sessionCookie?.value) {
       const isValidSession = await verifySession();
-      
+
       if (isValidSession) {
-        // For auth routes, redirect to dashboard if already authenticated
+        // If the user is already authenticated and on an auth route, redirect to dashboard
         if (isAuthRoute(pathname)) {
           return NextResponse.redirect(new URL("/dashboard", request.url));
         }
@@ -83,50 +84,36 @@ export async function middleware(request: NextRequest) {
       } else {
         // Session exists but is invalid, clear it and redirect to login
         response.cookies.delete("user-session");
-        
-        // Don't redirect if already on a public route
-        if (!isPublicRoute(pathname)) {
-          const url = new URL("/login", request.url);
-          if (pathname !== "/") {
-            url.searchParams.set("returnUrl", pathname);
-          }
-          return NextResponse.redirect(url);
-        }
       }
-    } 
-    // No session cookie, handle based on route type
-    else {
-      // Allow access to public routes
-      if (isPublicRoute(pathname)) {
-        return response;
-      }
+    }
 
+    // If no valid session, handle based on the route type
+    if (isPublicRoute(pathname)) {
+      // Allow access to public routes
+      return response;
+    } else {
       // Redirect to login for protected routes
       const url = new URL("/login", request.url);
-      
-      // Add the current path as returnUrl for post-login redirect
       if (pathname !== "/") {
         url.searchParams.set("returnUrl", pathname);
       }
-      
       return NextResponse.redirect(url);
     }
   } catch (error) {
     console.error("Middleware authentication error:", error);
-    
+
     // In case of any error, clear the session cookie
     response.cookies.delete("user-session");
-    
+
     // If not already on a public route, redirect to login
     if (!isPublicRoute(pathname)) {
       const url = new URL("/login", request.url);
       return NextResponse.redirect(url);
     }
-    
+
+    // Return the response for public routes even if there's an error
     return response;
   }
-  
-  return response;
 }
 
 /**
