@@ -6,9 +6,7 @@ const publicRoutes = [
   "/",
   "/login",
   "/forgot-password",
-  "/api/auth/oauth/google",
-  "/api/auth/oauth/github",
-  "/api/auth/callback",
+  "/api/auth/oauth",
 ];
 
 // Define routes that should never be accessible if already authenticated
