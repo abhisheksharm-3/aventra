@@ -10,7 +10,6 @@ import { GetStartedButton } from "../common/GetStartedButton";
 import { Bell, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { usePathname } from "next/navigation";
 import NavbarFlare from "../navbar/NavbarFlare";
 import { DesktopNavItems } from "../navbar/DesktopNavItems";
 import NotificationsPanel from "../navbar/NotificationsPanel";
@@ -18,6 +17,7 @@ import SearchPanel from "../navbar/SearchPanel";
 import UserProfileMenu from "../navbar/UserProfileMenu";
 import { MobileMenuToggle } from "../navbar/MobileMenuToggle";
 import { MobileMenu } from "../navbar/MobileMenu";
+import { useUser } from "@/hooks/useUser";
 
 /**
  * Navbar Component
@@ -30,10 +30,9 @@ const Navbar = () => {
   const [showSearch, setShowSearch] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const navbarRef = useRef<HTMLElement>(null);
-  const pathname = usePathname();
-
-  // Check if we're on a dashboard page
-  const isDashboard = pathname?.startsWith("/dashboard");
+  
+  // Use our custom hook for authentication state
+  const { user, isLoading, isLoggedIn } = useUser();
 
   /**
    * Handle scroll effect to update navbar appearance
@@ -128,7 +127,8 @@ const Navbar = () => {
       role="banner"
       ref={navbarRef}
     >
-      {!isDashboard && <NavbarFlare />}
+      {/* Only show navbar flare on public pages (not logged in) */}
+      {!isLoggedIn && <NavbarFlare />}
 
       {/* Main navigation container */}
       <div className="container mx-auto px-4 md:px-6 flex h-16 items-center justify-between relative">
@@ -158,8 +158,8 @@ const Navbar = () => {
           </Link>
         </motion.div>
 
-        {/* Desktop Navigation Menu - Only show on non-dashboard pages */}
-        {!isDashboard && (
+        {/* Desktop Navigation Menu - Only show public nav when not logged in */}
+        {!isLoggedIn && (
           <motion.div
             className="flex-grow flex justify-center"
             initial={{ opacity: 0, y: -8 }}
@@ -170,14 +170,14 @@ const Navbar = () => {
           </motion.div>
         )}
 
-        {/* Dashboard Header - Date and Welcome */}
-        {isDashboard && !showSearch && (
+        {/* User Welcome Header - Show when logged in */}
+        {isLoggedIn && !showSearch && user && (
           <div className="hidden md:block absolute left-1/2 transform -translate-x-1/2 text-center">
             <div className="text-xs text-muted-foreground">
               {formattedDate}
             </div>
             <div className="text-sm font-medium">
-              Welcome back, <span className="text-primary">Abhishek</span>
+              Welcome back, <span className="text-primary">{user.name || user.email}</span>
             </div>
           </div>
         )}
@@ -189,8 +189,8 @@ const Navbar = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.3 }}
         >
-          {/* Search Button (Dashboard only) */}
-          {isDashboard && (
+          {/* Search Button (Only show when logged in) */}
+          {isLoggedIn && (
             <Button
               variant="ghost"
               size="icon"
@@ -205,8 +205,8 @@ const Navbar = () => {
             </Button>
           )}
 
-          {/* Notifications Button (Dashboard only) */}
-          {isDashboard && (
+          {/* Notifications Button (Only show when logged in) */}
+          {isLoggedIn && (
             <div className="relative">
               <Button
                 variant="ghost"
@@ -237,7 +237,7 @@ const Navbar = () => {
 
           {/* Enhanced Search Panel */}
           <AnimatePresence>
-            {showSearch && isDashboard && (
+            {showSearch && isLoggedIn && (
               <SearchPanel searchInputRef={searchInputRef} />
             )}
           </AnimatePresence>
@@ -245,15 +245,19 @@ const Navbar = () => {
           {/* Theme Toggle */}
           <ThemeToggle />
 
-          {/* Show Get Started button only on non-dashboard pages */}
-          {!isDashboard ? (
-            <GetStartedButton />
-          ) : (
-            <UserProfileMenu />
+          {/* Conditional rendering based on authentication status */}
+          {!isLoading && (
+            <>
+              {isLoggedIn ? (
+                <UserProfileMenu />
+              ) : (
+                <GetStartedButton />
+              )}
+            </>
           )}
 
-          {/* Mobile Menu Toggle - Only for non-dashboard pages */}
-          {!isDashboard && (
+          {/* Mobile Menu Toggle - Only show for public pages (not logged in) */}
+          {!isLoggedIn && (
             <MobileMenuToggle
               isOpen={mobileMenuOpen}
               onToggle={toggleMobileMenu}
@@ -262,8 +266,10 @@ const Navbar = () => {
         </motion.div>
       </div>
 
-      {/* Mobile Navigation Menu */}
-      <MobileMenu isOpen={mobileMenuOpen} onClose={closeMobileMenu} />
+      {/* Mobile Navigation Menu - Only for public pages */}
+      {!isLoggedIn && (
+        <MobileMenu isOpen={mobileMenuOpen} onClose={closeMobileMenu} />
+      )}
     </header>
   );
 };

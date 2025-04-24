@@ -8,7 +8,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { Form, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 
 import { AuthMode, SocialProvider, FormStatus } from "@/types/auth";
 import {
@@ -18,18 +25,12 @@ import {
   SignupFormValues,
 } from "@/components/forms/schemas/auth";
 import {
-  IconInput,
   Icons,
   PasswordStrengthIndicator,
   StatusMessage,
-  SocialButton,
 } from "@/components/forms/login-form-components";
-import {
-  loginWithEmail,
-  loginWithGithub,
-  loginWithGoogle,
-  signUpWithEmail,
-} from "@/controllers/AuthController";
+import useAuth from "@/hooks/useAuth";
+import { Eye, EyeClosed } from "lucide-react";
 
 export default function LoginForm() {
   // State management with enums for better type safety
@@ -37,9 +38,12 @@ export default function LoginForm() {
   const [status, setStatus] = useState<FormStatus>(FormStatus.IDLE);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const searchParams = useSearchParams();
   const router = useRouter();
+
+  const { login, register, loginWithGoogle, loginWithGithub } = useAuth();
 
   // Get return URL from query params
   const returnUrl = searchParams.get("returnUrl") || "/dashboard";
@@ -74,7 +78,7 @@ export default function LoginForm() {
       formData.append("email", data.email);
       formData.append("password", data.password);
 
-      const result = await loginWithEmail(formData);
+      const result = await login(formData);
 
       if (!result.success) {
         setError(result.error || "Login failed. Please try again.");
@@ -106,7 +110,7 @@ export default function LoginForm() {
       formData.append("email", data.email);
       formData.append("password", data.password);
 
-      const result = await signUpWithEmail(formData);
+      const result = await register(formData);
 
       if (!result.success) {
         setError(result.error || "Signup failed. Please try again.");
@@ -228,10 +232,7 @@ export default function LoginForm() {
           {isSignUp ? (
             <Form {...signupForm}>
               <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  signupForm.handleSubmit(onSignupSubmit);
-                }}
+                onSubmit={signupForm.handleSubmit(onSignupSubmit)}
                 className="space-y-5"
               >
                 <FormField
@@ -239,11 +240,18 @@ export default function LoginForm() {
                   name="username"
                   render={({ field }) => (
                     <FormItem>
-                      <IconInput
-                        field={field}
-                        placeholder="Username"
-                        icon={Icons.User}
-                      />
+                      <FormControl>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                            {Icons.User}
+                          </span>
+                          <Input
+                            {...field}
+                            placeholder="Username"
+                            className="pl-10 h-12 border-border/50 bg-accent/30"
+                          />
+                        </div>
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -254,12 +262,19 @@ export default function LoginForm() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <IconInput
-                        field={field}
-                        type="email"
-                        placeholder="Email address"
-                        icon={Icons.Email}
-                      />
+                      <FormControl>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                            {Icons.Email}
+                          </span>
+                          <Input
+                            {...field}
+                            type="email"
+                            placeholder="Email address"
+                            className="pl-10 h-12 border-border/50 bg-accent/30"
+                          />
+                        </div>
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -270,12 +285,26 @@ export default function LoginForm() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <IconInput
-                        field={field}
-                        placeholder="Password"
-                        icon={Icons.Password}
-                        showPasswordToggle
-                      />
+                      <FormControl>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                            {Icons.Password}
+                          </span>
+                          <Input
+                            {...field}
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Password"
+                            className="pl-10 pr-10 h-12 border-border/50 bg-accent/30"
+                          />
+                          <button
+                            type="button"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? <EyeClosed size={18} /> : <Eye size={18} />}
+                          </button>
+                        </div>
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -304,10 +333,7 @@ export default function LoginForm() {
           ) : (
             <Form {...loginForm}>
               <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  loginForm.handleSubmit(onLoginSubmit);
-                }}
+                onSubmit={loginForm.handleSubmit(onLoginSubmit)}
                 className="space-y-5"
               >
                 <FormField
@@ -315,12 +341,19 @@ export default function LoginForm() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <IconInput
-                        field={field}
-                        type="email"
-                        placeholder="Email address"
-                        icon={Icons.Email}
-                      />
+                      <FormControl>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                            {Icons.Email}
+                          </span>
+                          <Input
+                            {...field}
+                            type="email"
+                            placeholder="Email address"
+                            className="pl-10 h-12 border-border/50 bg-accent/30"
+                          />
+                        </div>
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -331,12 +364,26 @@ export default function LoginForm() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <IconInput
-                        field={field}
-                        placeholder="Password"
-                        icon={Icons.Password}
-                        showPasswordToggle
-                      />
+                      <FormControl>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                            {Icons.Password}
+                          </span>
+                          <Input
+                            {...field}
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Password"
+                            className="pl-10 pr-10 h-12 border-border/50 bg-accent/30"
+                          />
+                          <button
+                            type="button"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? <EyeClosed size={18} /> : <Eye size={18} />}
+                          </button>
+                        </div>
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -383,19 +430,27 @@ export default function LoginForm() {
       </div>
 
       <div className="grid grid-cols-1 gap-3">
-        <SocialButton
-          provider={SocialProvider.GOOGLE}
-          icon={Icons.Google}
+        <Button
+          type="button"
+          variant="outline"
+          className="h-12 flex items-center justify-center gap-2 border-border/50 bg-accent/30 hover:bg-accent/50"
           onClick={() => handleSocialLogin(SocialProvider.GOOGLE)}
           disabled={isLoading}
-        />
+        >
+          {Icons.Google}
+          <span>Continue with Google</span>
+        </Button>
 
-        <SocialButton
-          provider={SocialProvider.GITHUB}
-          icon={Icons.GitHub}
+        <Button
+          type="button"
+          variant="outline"
+          className="h-12 flex items-center justify-center gap-2 border-border/50 bg-accent/30 hover:bg-accent/50"
           onClick={() => handleSocialLogin(SocialProvider.GITHUB)}
           disabled={isLoading}
-        />
+        >
+          {Icons.GitHub}
+          <span>Continue with GitHub</span>
+        </Button>
       </div>
     </div>
   );
