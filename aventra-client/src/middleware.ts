@@ -4,7 +4,6 @@ import { checkOnboardingStatus } from "./controllers/OnboardingController";
 
 // Define routes that don't require authentication
 const publicRoutes = [
-  "/",
   "/login",
   "/forgot-password",
   "/api/auth/oauth",

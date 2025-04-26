@@ -9,7 +9,6 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
-
 // Store and Server Actions
 import { useOnboardingStore } from "@/stores/useOnboardingStore";
 import { completeOnboarding, skipOnboarding } from "@/controllers/OnboardingController";
@@ -17,6 +16,7 @@ import { completeOnboarding, skipOnboarding } from "@/controllers/OnboardingCont
 // Onboarding Step Components
 import { StepWelcome } from "@/components/onboarding/step-welcome";
 import { StepInterests } from "@/components/onboarding/step-interests";
+import { StepBaseCity } from "@/components/onboarding/step-base-city"; // Import the new component
 import { StepTravelStyle } from "@/components/onboarding/step-travel-style";
 import { StepDietaryPreferences } from "@/components/onboarding/step-dietary-preferences";
 import { StepBudgetAndAI } from "@/components/onboarding/step-budget-ai";
@@ -36,7 +36,7 @@ export default function OnboardingPage() {
     setError
   } = useOnboardingStore();
   
-  const totalSteps = 5;
+  const totalSteps = 6; // Update to 6 steps total
   
   // Handle form submission
   const handleSubmit = async (event: React.FormEvent) => {
@@ -45,6 +45,12 @@ export default function OnboardingPage() {
     // Validation
     if (step === 2 && preferences.interests.length === 0) {
       toast.error("Please select at least one interest");
+      return;
+    }
+    
+    // Base city validation
+    if (step === 3 && !preferences.baseCity.trim()) {
+      toast.error("Please enter your home city");
       return;
     }
     
@@ -65,6 +71,7 @@ export default function OnboardingPage() {
       formData.append("dietaryPreferences", JSON.stringify(preferences.dietaryPreferences));
       formData.append("budget", preferences.budget.toString());
       formData.append("useAI", preferences.useAI.toString());
+      formData.append("baseCity", preferences.baseCity); // Add baseCity
       
       const result = await completeOnboarding(formData);
       
@@ -121,13 +128,13 @@ export default function OnboardingPage() {
         <div className="flex flex-col items-center mb-8">
           <div className="flex items-center mb-6">
             <Image
-                            src="/logo.png"
-                            alt="Logo"
-                            width={100}
-                            height={26}
-                            className="w-auto h-6 md:h-7"
-                            priority
-                          />
+              src="/logo.png"
+              alt="Logo"
+              width={100}
+              height={26}
+              className="w-auto h-6 md:h-7"
+              priority
+            />
           </div>
           
           <div className="w-full mb-2">
@@ -146,9 +153,10 @@ export default function OnboardingPage() {
               {/* Step content */}
               {step === 1 && <StepWelcome />}
               {step === 2 && <StepInterests />}
-              {step === 3 && <StepTravelStyle />}
-              {step === 4 && <StepDietaryPreferences />}
-              {step === 5 && <StepBudgetAndAI />}
+              {step === 3 && <StepBaseCity />} {/* Add the base city step */}
+              {step === 4 && <StepTravelStyle />}
+              {step === 5 && <StepDietaryPreferences />}
+              {step === 6 && <StepBudgetAndAI />}
             </AnimatePresence>
             
             {/* Navigation buttons */}
@@ -168,7 +176,10 @@ export default function OnboardingPage() {
               
               <Button 
                 type="submit"
-                disabled={isSubmitting || (step === 2 && preferences.interests.length === 0)}
+                disabled={isSubmitting || 
+                  (step === 2 && preferences.interests.length === 0) ||
+                  (step === 3 && !preferences.baseCity.trim())
+                }
               >
                 {isSubmitting 
                   ? "Saving..." 

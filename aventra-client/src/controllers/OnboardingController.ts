@@ -12,6 +12,7 @@ const preferencesSchema = z.object({
   dietaryPreferences: z.array(z.string()),
   budget: z.number().min(0).max(100),
   useAI: z.boolean(),
+  baseCity: z.string().min(1, "Home city is required"),
 });
 
 /**
@@ -45,6 +46,7 @@ export async function completeOnboarding(formData: FormData) {
       dietaryPreferences: JSON.parse(formData.get("dietaryPreferences") as string || "[]"),
       budget: parseInt(formData.get("budget") as string || "50"),
       useAI: formData.get("useAI") === "true",
+      baseCity: formData.get("baseCity") as string || "", // Added baseCity extraction
     };
 
     // Validate preferences
@@ -64,6 +66,7 @@ export async function completeOnboarding(formData: FormData) {
       dietaryPreferences: JSON.stringify(preferences.dietaryPreferences),
       budget: preferences.budget.toString(),
       useAI: preferences.useAI.toString(),
+      baseCity: preferences.baseCity, // Added baseCity to account preferences
       onboardingCompleted: "true",
       onboardingDate: new Date().toISOString(),
     });

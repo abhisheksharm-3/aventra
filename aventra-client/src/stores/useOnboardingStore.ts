@@ -6,6 +6,7 @@ interface OnboardingPreferences {
   dietaryPreferences: string[];
   budget: number;
   useAI: boolean;
+  baseCity: string; // Add the baseCity field
 }
 
 interface OnboardingState {
@@ -23,6 +24,7 @@ interface OnboardingState {
   toggleDietaryPreference: (diet: string) => void;
   setBudget: (value: number) => void;
   toggleAI: () => void;
+  setBaseCity: (city: string) => void; // Add the setBaseCity action
   setIsSubmitting: (value: boolean) => void;
   setError: (error: string | null) => void;
   resetOnboarding: () => void;
@@ -34,6 +36,7 @@ const initialPreferences: OnboardingPreferences = {
   dietaryPreferences: [],
   budget: 50,
   useAI: true,
+  baseCity: '', // Initialize with empty string
 };
 
 export const useOnboardingStore = create<OnboardingState>((set) => ({
@@ -45,7 +48,7 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
   setStep: (step) => set({ step }),
   
   nextStep: () => set((state) => ({ 
-    step: Math.min(state.step + 1, 5) 
+    step: Math.min(state.step + 1, 6) // Update to 6 steps total
   })),
   
   prevStep: () => set((state) => ({ 
@@ -102,6 +105,14 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
     preferences: {
       ...state.preferences,
       useAI: !state.preferences.useAI
+    }
+  })),
+  
+  // Add the setBaseCity action
+  setBaseCity: (baseCity) => set((state) => ({
+    preferences: {
+      ...state.preferences,
+      baseCity
     }
   })),
   
