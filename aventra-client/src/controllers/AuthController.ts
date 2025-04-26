@@ -1,10 +1,10 @@
 "use server";
 
 import { ID, OAuthProvider } from "node-appwrite";
-import { cookies, headers } from "next/headers";
 import { createAdminClient, createSessionClient } from "@/lib/services/appwrite/appwrite";
 import { z } from "zod"; // For input validation
 import { AuthResult } from "@/types/auth";
+import { headers } from "next/headers";
 
 /**
  * Authentication response type for consistent return values
@@ -26,29 +26,48 @@ const loginSchema = z.object({
  * Validates user input for signup
  */
 const signupSchema = loginSchema.extend({
-  username: z.string().min(3, "Username must be at least 3 characters").max(30, "Username must be less than 30 characters")
+  username: z
+    .string()
+    .min(3, "Username must be at least 3 characters")
+    .max(30, "Username must be less than 30 characters")
     .regex(/^[a-zA-Z0-9_-]+$/, "Username can only contain letters, numbers, underscores, and hyphens"),
 });
 
 /**
- * Sets a secure HTTP-only cookie for the user session
- * 
- * @param {string} sessionSecret - The session secret from Appwrite
+ * Helper function to call the cookie API route
  */
-const setSessionCookie = async (sessionSecret: string): Promise<void> => {
-  const userCookies = await cookies();
-  userCookies.set("user-session", sessionSecret, {
-    path: "/",
-    httpOnly: true,
-    sameSite: "strict",
-    secure: true,
-    maxAge: 60 * 60 * 24 * 7, // 7 days
+async function setCookieViaApi(cookieName: string, value: string, maxAge: number): Promise<void> {
+  const userHeaders = await headers();
+  const origin = userHeaders.get("origin");
+  if (!origin) {
+    throw new Error("Invalid request origin");
+  }
+  const response = await fetch( `${origin}/api/auth/cookies`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      action: "set",
+      cookieName,
+      value,
+      options: {
+        path: "/",
+        maxAge,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "Strict",
+      },
+    }),
   });
-};
+
+  if (!response.ok) {
+    console.error("Failed to set cookie via API:", await response.text());
+    throw new Error("Failed to set the session cookie.");
+  }
+}
 
 /**
- * Creates a new user account with username, email and password
- * 
+ * Creates a new user account with username, email, and password
+ *
  * @param {FormData} formData - Form data containing user signup information
  * @returns {Promise<AuthResult>} Authentication response
  */
@@ -67,41 +86,40 @@ export async function signUpWithEmail(formData: FormData): Promise<AuthResult> {
       const errorMessage = result.error.errors[0]?.message || "Invalid input data";
       return { success: false, error: errorMessage };
     }
-    
+
     const { username, email, password } = validationData;
 
     const { account } = await createAdminClient();
-    
+
     // Create user account using username as name
     await account.create(ID.unique(), email, password, username);
-    
+
     // Create session
     const session = await account.createEmailPasswordSession(email, password);
-    
-    // Set session cookie
-    setSessionCookie(session.secret);
-    
+
+    // Set session cookie via API
+    await setCookieViaApi("user-session", session.secret, 60 * 60 * 24 * 7); // 7 days
+
     return { success: true };
   } catch (error: unknown) {
     console.error("Sign up failed:", error);
-    
+
     // Handle specific error types if possible
-    const errorMessage = error instanceof Error 
-      ? error.message 
-      : "Sign up failed. Please try again.";
-      
-    return { 
-      success: false, 
-      error: errorMessage.includes("already exists") 
-        ? "An account with this email already exists." 
-        : errorMessage 
+    const errorMessage =
+      error instanceof Error ? error.message : "Sign up failed. Please try again.";
+
+    return {
+      success: false,
+      error: errorMessage.includes("already exists")
+        ? "An account with this email already exists."
+        : errorMessage,
     };
   }
 }
 
 /**
  * Authenticates a user with email and password
- * 
+ *
  * @param {FormData} formData - Form data containing login credentials
  * @returns {Promise<AuthResult>} Authentication response
  */
@@ -119,44 +137,61 @@ export async function loginWithEmail(formData: FormData): Promise<AuthResult> {
       const errorMessage = result.error.errors[0]?.message || "Invalid input data";
       return { success: false, error: errorMessage };
     }
-    
+
     const { email, password } = validationData;
     const { account } = await createAdminClient();
 
     // Create session
     const session = await account.createEmailPasswordSession(email, password);
-    
-    // Set session cookie
-    setSessionCookie(session.secret);
-    
+
+    // Set session cookie via API
+    await setCookieViaApi("user-session", session.secret, 60 * 60 * 24 * 7); // 7 days
+
     return { success: true };
   } catch (error: unknown) {
     console.error("Login failed:", error);
-    return { 
-      success: false, 
-      error: "Invalid email or password. Please try again." 
+    return {
+      success: false,
+      error: "Invalid email or password. Please try again.",
     };
   }
 }
 
 /**
  * Logs out the current user by deleting their session
- * 
+ *
  * @returns {Promise<AuthResult>} Authentication response
  */
 export async function logout(): Promise<AuthResult> {
   const { account } = await createSessionClient();
-  const userCookies = await cookies();
-  
+
   try {
     await account.deleteSession("current");
-    userCookies.delete("user-session");
+    const userHeaders = await headers();
+    const origin = userHeaders.get("origin");
+    if (!origin) {
+      throw new Error("Invalid request origin");
+    }
+    const response = await fetch( `${origin}/api/auth/cookies`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "clear",
+        cookieName: "user-session",
+      }),
+    });
+
+    if (!response.ok) {
+      console.error("Failed to clear cookie via API:", await response.text());
+      throw new Error("Failed to clear the session cookie.");
+    }
+
     return { success: true };
   } catch (error: unknown) {
     console.error("Logout failed:", error);
-    return { 
-      success: false, 
-      error: "Logout failed. Please try again." 
+    return {
+      success: false,
+      error: "Logout failed. Please try again.",
     };
   }
 }

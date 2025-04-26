@@ -8,7 +8,6 @@ export const loginSchema = z.object({
   password: z.string()
     .min(1, "Password is required")
     .min(6, "Password must be at least 6 characters"),
-  remember: z.boolean(),
 })
 
 // Signup form schema
@@ -22,7 +21,6 @@ export const signupSchema = z.object({
   password: z.string()
     .min(1, "Password is required")
     .min(6, "Password must be at least 6 characters"),
-  remember: z.boolean(),
 })
 
 export type LoginFormValues = z.infer<typeof loginSchema>
