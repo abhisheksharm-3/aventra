@@ -4,11 +4,12 @@ import { getGeminiModel, isConfigured } from "./client";
 export interface LocationSuggestionOptions {
     maxResults?: number;
     temperature?: number;
+    locationType?: "all" | "residential" | "tourist";
 }
 
 /**
  * Generates location-specific autocomplete suggestions using Gemini
- * Focuses specifically on cities, countries, and tourist destinations
+ * Handles both residential cities and tourist destinations based on options
  */
 export async function generateLocationSuggestions(
     query: string,

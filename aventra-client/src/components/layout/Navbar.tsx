@@ -147,7 +147,7 @@ const Navbar = () => {
           >
             <div className="relative overflow-hidden p-1">
               <Image
-                src="/logo.png"
+                src="/images/logo.png"
                 alt="Logo"
                 width={100}
                 height={26}

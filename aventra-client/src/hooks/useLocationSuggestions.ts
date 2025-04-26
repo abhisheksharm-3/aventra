@@ -2,8 +2,25 @@
 
 import { useState, useEffect } from "react";
 import { getLocationSuggestionsAction } from "@/lib/actions/location-suggestions";
-//TODO: This code requires a refactor to use the new action pattern
-export function useLocationSuggestions(input: string, debounceMs = 300) {
+
+export type LocationType = "all" | "residential" | "tourist";
+
+interface UseLocationSuggestionsOptions {
+  debounceMs?: number;
+  locationType?: LocationType;
+  maxResults?: number;
+}
+
+export function useLocationSuggestions(
+  input: string, 
+  options: UseLocationSuggestionsOptions = {}
+) {
+  const { 
+    debounceMs = 300, 
+    locationType = "all",
+    maxResults = 5
+  } = options;
+
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +39,10 @@ export function useLocationSuggestions(input: string, debounceMs = 300) {
         setError(null);
 
         const { suggestions: newSuggestions, error: actionError } = 
-          await getLocationSuggestionsAction(input);
+          await getLocationSuggestionsAction(input, { 
+            locationType, 
+            maxResults 
+          });
         
         if (actionError) {
           setError(actionError);
@@ -40,7 +60,7 @@ export function useLocationSuggestions(input: string, debounceMs = 300) {
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [input, debounceMs]);
+  }, [input, debounceMs, locationType, maxResults]);
 
   return { suggestions, loading, error };
 }

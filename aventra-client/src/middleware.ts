@@ -7,6 +7,7 @@ const publicRoutes = [
   "/login",
   "/forgot-password",
   "/api/auth/oauth",
+  "/"
 ];
 
 // Define routes that should never be accessible if already authenticated
@@ -24,22 +25,35 @@ const publicAssetPaths = [
   "/_next/image",
   "/favicon.ico", 
   "/_vercel",
-  "/",
+  "/images",
   "/fonts",
   "/videos",
 ];
 
 /**
  * Check if a path is a public asset that should bypass authentication
- * @param path - The current path
- * @returns boolean indicating if the path is a public asset
  */
 function isPublicAsset(path: string): boolean {
   return publicAssetPaths.some(assetPath => path.startsWith(assetPath));
 }
 
+/**
+ * Fixed function to check if a path is a public route
+ * Uses exact matching for root path to avoid bypassing all routes
+ */
 function isPublicRoute(path: string): boolean {
-  return publicRoutes.some(route => path === route || path.startsWith(`${route}/`));
+  // Special handling for root path
+  if (path === "/" && publicRoutes.includes("/")) {
+    return true;
+  }
+  
+  // For all other paths, use the normal matching logic
+  return publicRoutes.some(route => {
+    // Skip root path to avoid matching everything
+    if (route === "/") return false;
+    
+    return path === route || path.startsWith(`${route}/`);
+  });
 }
 
 function isAuthRoute(path: string): boolean {
@@ -83,7 +97,6 @@ export async function middleware(request: NextRequest) {
         }
         
         // Check onboarding status for authenticated users
-        // Skip this check for the onboarding page itself and related API routes
         if (!isOnboardingExempt(pathname)) {
           const hasCompletedOnboarding = await checkOnboardingStatus();
           
@@ -101,7 +114,7 @@ export async function middleware(request: NextRequest) {
         // For all other routes, proceed as normal (user is authenticated)
         return response;
       } else {
-        // Session exists but is invalid, clear it and redirect to login
+        // Session exists but is invalid, clear it
         response.cookies.delete("user-session");
       }
     }
@@ -135,10 +148,6 @@ export async function middleware(request: NextRequest) {
   }
 }
 
-/**
- * Configure which paths the middleware should run on
- * This runs middleware on all routes except specific static assets
- */
 export const config = {
   matcher: [
     "/((?!_next/static|_next/image|favicon.ico|images|assets|fonts|videos).*)",

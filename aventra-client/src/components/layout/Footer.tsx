@@ -46,7 +46,7 @@ const Footer = () => {
               <div className="relative overflow-hidden rounded-xl p-1">
                 <div className="relative z-10 flex items-center gap-2 transition-transform duration-300 group-hover:scale-105">
                   <Image
-                    src="/logo.png"
+                    src="/images/logo.png"
                     alt="Logo"
                     width={120}
                     height={30}

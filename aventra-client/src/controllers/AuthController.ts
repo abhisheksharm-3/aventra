@@ -194,7 +194,7 @@ export async function loginWithGithub(): Promise<AuthResult | string> {
  */
 export async function verifySession(): Promise<boolean> {
   try {
-    const { account } = await createAdminClient();
+    const { account } = await createSessionClient();
     await account.get();
     return true;
   } catch {
