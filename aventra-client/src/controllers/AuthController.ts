@@ -2,7 +2,7 @@
 
 import { ID, OAuthProvider } from "node-appwrite";
 import { cookies, headers } from "next/headers";
-import { createAdminClient } from "@/lib/services/appwrite/appwrite";
+import { createAdminClient, createSessionClient } from "@/lib/services/appwrite/appwrite";
 import { z } from "zod"; // For input validation
 import { AuthResult } from "@/types/auth";
 
@@ -145,7 +145,7 @@ export async function loginWithEmail(formData: FormData): Promise<AuthResult> {
  * @returns {Promise<AuthResult>} Authentication response
  */
 export async function logout(): Promise<AuthResult> {
-  const { account } = await createAdminClient();
+  const { account } = await createSessionClient();
   const userCookies = await cookies();
   
   try {

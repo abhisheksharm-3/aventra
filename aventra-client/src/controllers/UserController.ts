@@ -11,9 +11,8 @@ import { UserUpdateResult } from "@/types/appwrite";
  */
 export async function getCurrentUser() {
   try {
-    const { account } = await createAdminClient();
-    const user = await account.get();
-    return user;
+    const { account } = await createSessionClient();
+    return await account.get();
   } catch (error) {
     console.error("Failed to get current user:", error);
     return null;
