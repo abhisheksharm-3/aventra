@@ -13,6 +13,7 @@ import Layout from "@/components/layout/Layout";
 import { Badge } from "@/components/ui/badge";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 export default function DashboardPage() {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -91,13 +92,16 @@ export default function DashboardPage() {
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.5, delay: 0.2 }}
                 >
-                  <Button
-                    size="lg"
-                    className="mt-4 lg:mt-0 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md hover:shadow-lg transition-all duration-300"
-                  >
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Create New Experience
-                  </Button>
+                      <Button
+                      size="lg"
+                      className="mt-4 lg:mt-0 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md hover:shadow-lg transition-all duration-300"
+                      asChild
+                      >
+                      <Link href="/plan">
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Create New Experience
+                      </Link>
+                      </Button>
                 </motion.div>
               </div>
             </div>
