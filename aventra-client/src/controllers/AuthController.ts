@@ -3,69 +3,8 @@
 import { ID, OAuthProvider } from "node-appwrite";
 import { createAdminClient, createSessionClient } from "@/lib/services/appwrite/appwrite";
 import { AuthResult } from "@/types/auth";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { loginSchema, signupSchema } from "@/components/forms/schemas/auth";
-
-/**
- * Sets a cookie via the API route.
- *
- * @param {string} cookieName - The name of the cookie.
- * @param {string} value - The value to set for the cookie.
- * @param {number} maxAge - Maximum age of the cookie in seconds.
- * @throws Will throw an error if the cookie cannot be set.
- */
-async function setCookieViaApi(cookieName: string, value: string, maxAge: number): Promise<void> {
-  const userHeaders = await headers();
-  const origin = userHeaders.get("origin");
-  if (!origin) throw new Error("Invalid request origin");
-
-  const response = await fetch(`${origin}/api/auth/cookies`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      action: "set",
-      cookieName,
-      value,
-      options: {
-        path: "/",
-        maxAge,
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "Strict",
-      },
-    }),
-  });
-
-  if (!response.ok) {
-    console.error("Failed to set cookie:", await response.text());
-    throw new Error("Failed to set the session cookie.");
-  }
-}
-
-/**
- * Clears the user session cookie via API.
- *
- * @throws Will throw an error if the cookie cannot be cleared.
- */
-async function clearCookie(): Promise<void> {
-  const userHeaders = await headers();
-  const origin = userHeaders.get("origin");
-  if (!origin) throw new Error("Invalid request origin");
-
-  const response = await fetch(`${origin}/api/auth/cookies`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      action: "clear",
-      cookieName: "user-session",
-    }),
-  });
-
-  if (!response.ok) {
-    console.error("Failed to clear cookie:", await response.text());
-    throw new Error("Failed to clear the session cookie.");
-  }
-}
 
 /**
  * Signs up a user with email, username, and password.
@@ -90,7 +29,15 @@ export async function signUpWithEmail(formData: FormData): Promise<AuthResult> {
     await account.create(ID.unique(), email, password, username);
     const session = await account.createEmailPasswordSession(email, password);
 
-    await setCookieViaApi("user-session", session.secret, 60 * 60 * 24 * 7); // 7 days
+    // Set the cookie directly using Next.js cookies API
+    (await cookies()).set("user-session", session.secret, {
+      path: "/",
+      httpOnly: true,
+      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    });
+    
     return { success: true };
   } catch (error: unknown) {
     console.error("Sign up failed:", error);
@@ -121,7 +68,16 @@ export async function loginWithEmail(formData: FormData): Promise<AuthResult> {
     const { account } = await createAdminClient();
 
     const session = await account.createEmailPasswordSession(email, password);
-    await setCookieViaApi("user-session", session.secret, 60 * 60 * 24 * 7); // 7 days
+    
+    // Set the cookie directly using Next.js cookies API
+    (await cookies()).set("user-session", session.secret, {
+      path: "/",
+      httpOnly: true,
+      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+    });
+    
     return { success: true };
   } catch (error: unknown) {
     console.error("Login failed:", error);
@@ -138,7 +94,13 @@ export async function logout(): Promise<AuthResult> {
   try {
     const { account } = await createSessionClient();
     await account.deleteSession("current");
-    await clearCookie();
+    
+    // Clear the cookie directly
+    (await cookies()).set("user-session", "", {
+      path: "/",
+      expires: new Date(0),
+    });
+    
     return { success: true };
   } catch (error: unknown) {
     console.error("Logout failed:", error);
