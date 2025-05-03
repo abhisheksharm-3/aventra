@@ -1,5 +1,5 @@
 "use server";
-import { Client, Account } from "node-appwrite";
+import { Client, Account, Users } from "node-appwrite";
 import { cookies } from "next/headers";
 
 /**
@@ -71,6 +71,34 @@ export async function createAdminClient() {
     } catch (error) {
         console.error("Admin client creation failed:", error);
         throw error instanceof Error ? error : new Error("Unknown error creating admin client");
+    }
+}
+
+/**
+ * Creates and returns a Users service with admin privileges
+ * @returns Users service for administrative operations
+ * @throws {Error} If environment variables are missing
+ */
+export async function createUsersAdmin() {
+    try {
+        // Validate environment variables
+        const endpoint = process.env.APPWRITE_ENDPOINT;
+        const projectId = process.env.APPWRITE_PROJECT_ID;
+        const apiKey = process.env.APPWRITE_KEY;
+        
+        if (!endpoint || !projectId || !apiKey) {
+            throw new Error("Missing required environment variables");
+        }
+        
+        const client = new Client()
+            .setEndpoint(endpoint)
+            .setProject(projectId)
+            .setKey(apiKey);
+
+        return new Users(client);
+    } catch (error) {
+        console.error("Users admin creation failed:", error);
+        throw error instanceof Error ? error : new Error("Unknown error creating users admin");
     }
 }
 

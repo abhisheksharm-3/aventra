@@ -8,8 +8,7 @@ import { useOnboardingStore } from "@/stores/useOnboardingStore";
 
 /**
  * @component StepBudgetAndAI
- * @description A premium component for setting budget preferences and showcasing
- * the AI-powered recommendation system during onboarding.
+ * @description A minimal component for setting budget preferences during onboarding.
  * 
  * @returns {JSX.Element} The rendered budget & AI component
  */
@@ -28,58 +27,34 @@ export function StepBudgetAndAI() {
   return (
     <motion.div
       key="budget-ai"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.5, ease: "easeOut" }}
-      className="relative space-y-8 max-w-3xl mx-auto px-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      className="space-y-5"
     >
-      {/* Decorative background elements */}
-      <div className="absolute -z-10 top-0 left-0 w-full h-full overflow-hidden">
-        <div className="absolute top-1/4 -left-32 w-64 h-64 bg-gradient-to-r from-primary/10 to-primary/5 rounded-full blur-3xl" />
-        <div className="absolute -bottom-20 right-10 w-48 h-48 bg-gradient-to-l from-secondary/10 to-secondary/5 rounded-full blur-3xl" />
-      </div>
-
       {/* Header section */}
-      <div className="text-center pt-3">
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.4 }}
-        >
-          <h2 className="text-3xl font-bold mb-3 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Final Preferences
-          </h2>
-        </motion.div>
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.4 }}
-          className="text-muted-foreground text-lg max-w-md mx-auto leading-relaxed"
-        >
+      <div className="text-center mb-4">
+        <h2 className="text-2xl font-medium mb-2">
+          Final preferences
+        </h2>
+        <p className="text-muted-foreground text-sm">
           Almost there! Let&apos;s finalize your experience settings
-        </motion.p>
+        </p>
       </div>
       
       {/* Budget section */}
-      <motion.div 
-        className="space-y-6"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4, duration: 0.5 }}
-      >
-        <div className="space-y-6 p-6 rounded-xl border backdrop-blur-sm bg-card/40">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="h-10 w-10 rounded-full bg-primary/15 flex items-center justify-center">
-              <CircleDollarSign className="h-5 w-5 text-primary" />
-            </div>
-            <Label htmlFor="budget-slider" className="text-lg font-medium">
-              Budget Preference
+      <div className="space-y-5">
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 mb-1">
+            <CircleDollarSign className="h-4 w-4 text-primary" />
+            <Label htmlFor="budget-slider" className="font-medium text-sm">
+              Budget preference
             </Label>
           </div>
           
-          {/* Interactive budget slider with enhanced UI */}
-          <div className="py-4">
+          {/* Budget slider with labels */}
+          <div>
             <Slider
               id="budget-slider"
               min={0}
@@ -89,93 +64,58 @@ export function StepBudgetAndAI() {
               onValueChange={(values) => setBudget(values[0])}
               className="my-6"
             />
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>Budget-conscious</span>
+            
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>Budget</span>
               <span>Mid-range</span>
               <span>Premium</span>
               <span>Luxury</span>
             </div>
           </div>
           
-          {/* Budget label indicator */}
+          {/* Selected budget indicator */}
           <div className="flex justify-center mt-4">
-            <motion.div 
-              className="relative"
-              initial={{ scale: 0.9 }}
-              animate={{ scale: 1 }}
-              transition={{ 
-                delay: 0.6,
-                duration: 0.4, 
-                type: "spring",
-                stiffness: 300, 
-                damping: 15 
-              }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/40 to-secondary/40 rounded-full blur-md" />
-              <div className="relative px-5 py-2 rounded-full bg-gradient-to-r from-primary to-secondary">
-                <span className="font-medium text-white">
-                  {getBudgetLabel(budgetPercentage)}
-                </span>
-              </div>
-            </motion.div>
+            <div className="px-4 py-1.5 rounded-md bg-primary/10 border border-primary/20">
+              <span className="font-medium text-sm text-primary">
+                {getBudgetLabel(budgetPercentage)}
+              </span>
+            </div>
           </div>
         </div>
-      </motion.div>
+      </div>
       
-      {/* AI Feature Showcase (made mandatory) */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6, duration: 0.5 }}
-        className="p-6 rounded-xl border-2 border-primary/30 bg-primary/5 backdrop-blur-md"
-      >
-        <div className="flex items-start">
-          <div className="h-12 w-12 rounded-full bg-primary/20 flex-shrink-0 flex items-center justify-center mr-4">
-            <Sparkles className="h-6 w-6 text-primary" />
+      {/* AI Feature Showcase */}
+      <div className="mt-6 p-4 rounded-md border border-border bg-muted/30">
+        <div className="flex items-start gap-3">
+          <div className="mt-0.5">
+            <Sparkles className="h-5 w-5 text-primary" />
           </div>
+          
           <div>
-            <h3 className="text-lg font-semibold flex items-center gap-2">
+            <h3 className="text-sm font-medium flex items-center gap-2">
               AI-Powered Recommendations
-              <BadgeCheck className="h-5 w-5 text-primary" />
+              <BadgeCheck className="h-4 w-4 text-primary" />
             </h3>
-            <p className="text-muted-foreground mt-2 leading-relaxed">
-              Aventra&apos;s core experience is powered by our proprietary AI technology. 
-              Our system analyzes your preferences to curate experiences tailored 
-              specifically to you, ensuring every adventure perfectly matches your style.
+            
+            <p className="text-xs text-muted-foreground mt-2">
+              Aventra&apos;s AI technology analyzes your preferences to curate experiences 
+              tailored specifically to you, ensuring every adventure perfectly 
+              matches your style.
             </p>
             
-            <div className="mt-4 flex flex-wrap gap-2">
-              {["Personalized", "Smart", "Adaptive", "Curated"].map((feature, index) => (
-                <motion.span
+            <div className="mt-3 flex flex-wrap gap-2">
+              {["Personalized", "Smart", "Adaptive", "Curated"].map((feature) => (
+                <span
                   key={feature}
-                  className="px-3 py-1 text-xs rounded-full bg-primary/10 text-primary"
-                  initial={{ opacity: 0, x: -5 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.8 + (index * 0.1), duration: 0.3 }}
+                  className="px-2 py-0.5 text-xs rounded-md bg-primary/5 text-muted-foreground"
                 >
                   {feature}
-                </motion.span>
+                </span>
               ))}
             </div>
           </div>
         </div>
-      </motion.div>
-      
-      {/* Progress indicator dots */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.9, duration: 0.4 }}
-        className="text-center mt-4"
-      >
-        <div className="mt-6 inline-flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-muted/40 inline-block" />
-          <span className="w-1.5 h-1.5 rounded-full bg-muted/40 inline-block" />
-          <span className="w-1.5 h-1.5 rounded-full bg-muted/40 inline-block" />
-          <span className="w-1.5 h-1.5 rounded-full bg-muted/40 inline-block" />
-          <span className="w-1.5 h-1.5 rounded-full bg-primary/60 inline-block" />
-        </div>
-      </motion.div>
+      </div>
     </motion.div>
   );
 }

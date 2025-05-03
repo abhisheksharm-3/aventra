@@ -31,8 +31,8 @@ export default function LoginPage() {
                   <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
                 </svg>
               </div>
-              <h2 className="font-serif text-4xl font-medium text-white/90 mb-4">Your Journey Awaits</h2>
-              <p className="text-white/70 leading-relaxed">
+              <h2 className="font-serif text-4xl font-medium text-primary/90 mb-4">Your Journey Awaits</h2>
+              <p className="text-primary/70 leading-relaxed">
                 Access your personalized dashboard, track your progress, and continue your adventure in a 
                 secure and seamless environment.
               </p>
@@ -45,7 +45,7 @@ export default function LoginPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <p className="text-white/80 text-sm">Advanced analytics and visualization</p>
+                <p className="text-primary/80 text-sm">Advanced analytics and visualization</p>
               </div>
               <div className="flex items-center gap-3">
                 <div className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center">
@@ -53,7 +53,7 @@ export default function LoginPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <p className="text-white/80 text-sm">Personalized recommendations</p>
+                <p className="text-primary/80 text-sm">Personalized recommendations</p>
               </div>
               <div className="flex items-center gap-3">
                 <div className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center">
@@ -61,7 +61,7 @@ export default function LoginPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <p className="text-white/80 text-sm">Secure cloud synchronization</p>
+                <p className="text-primary/80 text-sm">Secure cloud synchronization</p>
               </div>
             </div>
           </div>
