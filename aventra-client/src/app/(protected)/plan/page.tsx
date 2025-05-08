@@ -30,10 +30,6 @@ import { cn } from "@/lib/utils";
 
 import Layout from "@/components/layout/Layout";
 import { ChatPlanningDialog } from "@/components/dashboard/chat-planning-dialog";
-
-// Import your existing components
-import { SearchBar } from "@/components/hero-generation/SearchBar";
-import { FilterBar } from "@/components/hero-generation/FilterBar";
 import { useSearchStore } from "@/stores/searchStore";
 import { FilterOptions } from "@/types/hero";
 
@@ -219,11 +215,6 @@ export default function NewTripPage() {
                     
                     {/* SearchBar as autocomplete for trip context */}
                     <div className="mb-6">
-                      <SearchBar 
-                        // onSearch={handleContextSubmit} 
-                        // placeholder="Example: Relaxing beach vacation with local cuisine..." 
-                        // buttonText="Continue"
-                      />
                       <p className="text-xs text-muted-foreground mt-2">
                         Add context to help us understand your trip vision (you&apos;ll select locations in the next step)
                       </p>
@@ -400,11 +391,6 @@ export default function NewTripPage() {
                       Select your destination, travel dates, and group size
                     </p>
                     
-                    {/* FilterBar component - this is where location selection should happen */}
-                    <FilterBar 
-                      // onChange={handleFilterChange} 
-                      // minimal={false}
-                    />
                     
                     {/* Selected destination indicator */}
                     {selectedDestination && (
