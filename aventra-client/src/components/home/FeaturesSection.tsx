@@ -41,13 +41,14 @@ const FeatureCard = ({ icon, title, description, link, index, color }: FeatureCa
       >
         <motion.div 
           animate={isHovered ? {
-            opacity: [0.1, 0.2, 0.1],
-            scale: [1, 1.05, 1],
+            opacity: [0.1, 0.2],
+            scale: [1, 1.05],
           } : {}}
           transition={{ 
             duration: 3, 
             repeat: Infinity, 
-            repeatType: "reverse" 
+            repeatType: "reverse",
+            type: "tween"  // Explicitly set animation type
           }}
           className={cn(
             "absolute inset-0 blur-xl bg-gradient-to-br",
@@ -79,7 +80,7 @@ const FeatureCard = ({ icon, title, description, link, index, color }: FeatureCa
             whileInView={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 100, delay: index * 0.1 }}
             viewport={{ once: true }}
-            animate={isHovered ? { y: [0, -5, 0] } : {}}
+            animate={isHovered ? { y: -5 } : { y: 0 }}  // Fixed: using only 2 values
             className={cn(
               "inline-flex p-3 sm:p-4 rounded-xl",
               "bg-gradient-to-br from-background/70 to-background/30",
@@ -258,27 +259,29 @@ const FeaturesSection = () => {
         <motion.div 
           style={{ x: leftBlobX, y: leftBlobY }}
           animate={{ 
-            opacity: [0.6, 0.7, 0.6],
-            scale: [1, 1.05, 1],
+            opacity: [0.6, 0.7],
+            scale: [1, 1.05],
           }}
           transition={{ 
             duration: 8, 
             repeat: Infinity, 
-            repeatType: "reverse" 
+            repeatType: "reverse",
+            type: "tween"  // Explicitly set animation type
           }}
           className="absolute top-20 -left-40 h-[600px] w-[600px] bg-primary/5 rounded-full blur-[120px]" 
         />
         <motion.div 
           style={{ x: rightBlobX, y: rightBlobY }}
           animate={{ 
-            opacity: [0.6, 0.8, 0.6],
-            scale: [1, 1.03, 1],
+            opacity: [0.6, 0.8],
+            scale: [1, 1.03],
           }}
           transition={{ 
             duration: 10, 
             repeat: Infinity, 
             repeatType: "reverse",
-            delay: 2
+            delay: 2,
+            type: "tween"  // Explicitly set animation type
           }}
           className="absolute bottom-0 -right-40 h-[600px] w-[600px] bg-blue-700/5 rounded-full blur-[120px]" 
         />
@@ -286,8 +289,7 @@ const FeaturesSection = () => {
         {/* Additional subtle background elements */}
         <motion.div
           animate={{ 
-            opacity: [0.1, 0.2, 0.1],
-            rotate: [0, 360],
+            rotate: 360
           }}
           transition={{ duration: 120, repeat: Infinity, ease: "linear" }}
           className="absolute top-1/4 right-1/4 w-[800px] h-[800px] border border-primary/5 rounded-full"
@@ -397,14 +399,15 @@ const FeaturesSection = () => {
             <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-primary/20 flex items-center justify-center text-primary">
               <motion.span 
                 animate={{ 
-                  scale: [1, 1.2, 1],
-                  rotate: [0, 10, -10, 0]
+                  scale: [1, 1.2],
+                  rotate: [0, 10]
                 }}
                 transition={{ 
-                  duration: 4, 
+                  duration: 2, 
                   repeat: Infinity,
                   repeatType: "reverse",
-                  ease: "easeInOut"
+                  ease: "easeInOut",
+                  type: "tween"  // Explicitly set animation type
                 }}
                 className="text-base sm:text-lg"
               >
@@ -415,9 +418,6 @@ const FeaturesSection = () => {
           </motion.div>
         </motion.div>
       </div>
-
-      {/* Bottom fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent z-10" />
     </section>
   )
 }
