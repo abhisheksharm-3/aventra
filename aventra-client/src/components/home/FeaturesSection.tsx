@@ -4,7 +4,7 @@ import { Compass, Users, Heart, Utensils, Calendar, MapPin } from "lucide-react"
 import { motion, useScroll, useTransform } from "framer-motion"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
-import { ReactNode, useRef } from "react"
+import { ReactNode, useRef, useState } from "react"
 
 interface FeatureCardProps {
   icon: ReactNode;
@@ -16,27 +16,47 @@ interface FeatureCardProps {
 }
 
 const FeatureCard = ({ icon, title, description, link, index, color }: FeatureCardProps) => {
+  const [isHovered, setIsHovered] = useState(false);
+  
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.7, delay: index * 0.1, ease: "easeOut" }}
       viewport={{ once: true, margin: "-50px" }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       className={cn(
         "group relative rounded-xl overflow-hidden backdrop-blur-sm border border-white/10",
         "bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10",
-        "shadow-sm hover:shadow-lg transition-all duration-500",
+        "shadow-sm hover:shadow-xl transition-all duration-500",
       )}
     >
-      {/* Gradient background effect */}
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
-        <div className={cn(
-          "absolute inset-0 blur-xl bg-gradient-to-br opacity-20",
-          color
-        )} />
+      {/* Enhanced gradient background effect with animation */}
+      <div 
+        className={cn(
+          "absolute inset-0 transition-opacity duration-700",
+          isHovered ? "opacity-100" : "opacity-0"
+        )}
+      >
+        <motion.div 
+          animate={isHovered ? {
+            opacity: [0.1, 0.2, 0.1],
+            scale: [1, 1.05, 1],
+          } : {}}
+          transition={{ 
+            duration: 3, 
+            repeat: Infinity, 
+            repeatType: "reverse" 
+          }}
+          className={cn(
+            "absolute inset-0 blur-xl bg-gradient-to-br",
+            color
+          )} 
+        />
       </div>
       
-      {/* Animated highlight */}
+      {/* Animated highlight with pulse effect */}
       <motion.div 
         className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-primary/50 to-transparent"
         initial={{ scaleX: 0, opacity: 0 }}
@@ -45,31 +65,68 @@ const FeatureCard = ({ icon, title, description, link, index, color }: FeatureCa
         viewport={{ once: true }}
       />
       
+      {/* Subtle corner glow on hover */}
+      <div className={cn(
+        "absolute -top-10 -right-10 w-40 h-40 bg-primary/10 rounded-full blur-xl transition-opacity duration-500",
+        isHovered ? "opacity-30" : "opacity-0"
+      )}></div>
+      
       <div className="p-6 sm:p-7 relative z-10">
-        <div className="mb-5 sm:mb-6 transform group-hover:scale-105 transition-transform duration-500">
+        {/* Enhanced icon animation */}
+        <div className="mb-5 sm:mb-6 relative">
           <motion.div 
             initial={{ scale: 0.8, opacity: 0 }}
             whileInView={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 100, delay: index * 0.1 }}
             viewport={{ once: true }}
+            animate={isHovered ? { y: [0, -5, 0] } : {}}
             className={cn(
               "inline-flex p-3 sm:p-4 rounded-xl",
               "bg-gradient-to-br from-background/70 to-background/30",
-              "border border-white/10 shadow-md"
+              "border border-white/10 shadow-md",
+              "transform group-hover:scale-105 transition-transform duration-500"
             )}
           >
-            <div className="text-primary">
+            <div className="text-primary relative">
               {icon}
+              {/* Icon glow effect on hover */}
+              <div className={cn(
+                "absolute inset-0 bg-primary/20 blur-md rounded-full transition-opacity duration-300",
+                isHovered ? "opacity-70" : "opacity-0"
+              )}></div>
+            </div>
+          </motion.div>
+          
+          {/* Decorative dots */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: isHovered ? 1 : 0 }}
+            transition={{ duration: 0.3 }}
+            className="absolute top-0 right-0 hidden sm:block"
+          >
+            <div className="flex gap-1">
+              {[...Array(3)].map((_, i) => (
+                <div 
+                  key={i} 
+                  className={`h-1.5 w-1.5 rounded-full bg-primary/60 ${isHovered ? 'animate-pulse' : ''}`}
+                  style={{ animationDelay: `${i * 0.2}s` }}
+                ></div>
+              ))}
             </div>
           </motion.div>
         </div>
         
+        {/* Enhanced text animations */}
         <motion.h3 
           initial={{ x: -10, opacity: 0 }}
           whileInView={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.5, delay: index * 0.1 + 0.2 }}
           viewport={{ once: true }}
-          className="text-xl font-medium mb-2.5 group-hover:text-primary transition-colors duration-500"
+          className={cn(
+            "text-xl font-medium mb-2.5 transition-colors duration-500",
+            "relative inline-block",
+            isHovered ? "text-primary" : "text-foreground"
+          )}
         >
           {title}
         </motion.h3>
@@ -84,6 +141,7 @@ const FeatureCard = ({ icon, title, description, link, index, color }: FeatureCa
           {description}
         </motion.p>
         
+        {/* Enhanced link animation */}
         <motion.div
           initial={{ y: 10, opacity: 0 }}
           whileInView={{ y: 0, opacity: 1 }}
@@ -95,7 +153,22 @@ const FeatureCard = ({ icon, title, description, link, index, color }: FeatureCa
             className="inline-flex items-center text-primary hover:text-primary/80 font-medium group/link"
           >
             <span className="group-hover/link:translate-x-1 transition-transform duration-300">Explore</span>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1 h-4 w-4 group-hover/link:translate-x-1 transition-transform duration-300">
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              width="16" 
+              height="16" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              className={cn(
+                "ml-1 h-4 w-4 transition-all duration-300",
+                "group-hover/link:translate-x-1",
+                isHovered ? "animate-pulse" : ""
+              )}
+            >
               <path d="M5 12h14"></path>
               <path d="m12 5 7 7-7 7"></path>
             </svg>
@@ -121,9 +194,12 @@ const FeaturesSection = () => {
     offset: ["start end", "end start"]
   });
   
-  // Parallax effect for background blobs
+  // Enhanced parallax effect for background blobs
   const leftBlobX = useTransform(scrollYProgress, [0, 1], [-60, -20]);
+  const leftBlobY = useTransform(scrollYProgress, [0, 1], [0, -40]);
   const rightBlobX = useTransform(scrollYProgress, [0, 1], [0, 40]);
+  const rightBlobY = useTransform(scrollYProgress, [0, 1], [0, 60]);
+  const titleY = useTransform(scrollYProgress, [0, 0.5], [0, -20]);
   
   // Gradient feature colors to match the destination colors in Hero
   const features: FeatureType[] = [
@@ -177,19 +253,48 @@ const FeaturesSection = () => {
       id="features" 
       className="relative py-20 sm:py-24 md:py-28 lg:py-36 overflow-hidden bg-gradient-to-b from-background to-background/95"
     >
-      {/* Animated background elements */}
+      {/* Enhanced animated background elements */}
       <div className="absolute inset-0 -z-10">
         <motion.div 
-          style={{ x: leftBlobX }}
-          className="absolute top-20 -left-40 h-[600px] w-[600px] bg-primary/5 rounded-full blur-[120px] opacity-70" 
+          style={{ x: leftBlobX, y: leftBlobY }}
+          animate={{ 
+            opacity: [0.6, 0.7, 0.6],
+            scale: [1, 1.05, 1],
+          }}
+          transition={{ 
+            duration: 8, 
+            repeat: Infinity, 
+            repeatType: "reverse" 
+          }}
+          className="absolute top-20 -left-40 h-[600px] w-[600px] bg-primary/5 rounded-full blur-[120px]" 
         />
         <motion.div 
-          style={{ x: rightBlobX }}
-          className="absolute bottom-0 -right-40 h-[600px] w-[600px] bg-blue-700/5 rounded-full blur-[120px] opacity-70" 
+          style={{ x: rightBlobX, y: rightBlobY }}
+          animate={{ 
+            opacity: [0.6, 0.8, 0.6],
+            scale: [1, 1.03, 1],
+          }}
+          transition={{ 
+            duration: 10, 
+            repeat: Infinity, 
+            repeatType: "reverse",
+            delay: 2
+          }}
+          className="absolute bottom-0 -right-40 h-[600px] w-[600px] bg-blue-700/5 rounded-full blur-[120px]" 
+        />
+        
+        {/* Additional subtle background elements */}
+        <motion.div
+          animate={{ 
+            opacity: [0.1, 0.2, 0.1],
+            rotate: [0, 360],
+          }}
+          transition={{ duration: 120, repeat: Infinity, ease: "linear" }}
+          className="absolute top-1/4 right-1/4 w-[800px] h-[800px] border border-primary/5 rounded-full"
         />
         
         {/* Subtle grain texture for depth - matching hero */}
-        <div className="absolute inset-0 opacity-20">
+        <div className="absolute inset-0 opacity-30">
           <div className="absolute inset-0 bg-[url('/noise.png')] bg-repeat opacity-20"></div>
         </div>
       </div>
@@ -199,6 +304,7 @@ const FeaturesSection = () => {
 
       <div className="container px-4 sm:px-6 md:px-8 w-full mx-auto relative z-10">
         <motion.div 
+          style={{ y: titleY }}
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, ease: "easeOut" }}
@@ -223,14 +329,22 @@ const FeaturesSection = () => {
             "leading-[1.1] mb-4"
           )}>
             Discover Your Next{" "}
-            <span className="relative text-primary">
+            <span className="relative inline-block text-primary">
               Adventure
               <motion.span 
-                className="absolute bottom-0 left-0 w-full h-[0.12em] bg-primary/60 rounded-full" 
+                className="absolute bottom-0 left-0 w-full h-[0.12em] bg-gradient-to-r from-primary/30 via-primary/80 to-primary/30 rounded-full" 
                 initial={{ scaleX: 0, originX: 0 }}
                 whileInView={{ scaleX: 1 }}
                 transition={{ delay: 0.6, duration: 0.9 }}
                 viewport={{ once: true }}
+              />
+              
+              {/* Subtle glow effect */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                transition={{ delay: 1, duration: 0.5 }}
+                className="absolute -inset-x-2 -inset-y-1 bg-primary/10 blur-xl rounded-full -z-10"
               />
             </span>
           </h2>
@@ -276,14 +390,34 @@ const FeaturesSection = () => {
           viewport={{ once: true }}
           className="mt-16 sm:mt-20 flex justify-center"
         >
-          <div className="inline-flex items-center gap-2.5 py-2.5 px-5 rounded-full bg-black/20 dark:bg-white/10 backdrop-blur-md border border-white/10 shadow-lg">
+          <motion.div 
+            whileHover={{ scale: 1.05 }}
+            className="inline-flex items-center gap-2.5 py-2.5 px-5 rounded-full bg-black/20 dark:bg-white/10 backdrop-blur-md border border-white/10 shadow-lg"
+          >
             <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-primary/20 flex items-center justify-center text-primary">
-              <span className="text-base sm:text-lg">✨</span>
+              <motion.span 
+                animate={{ 
+                  scale: [1, 1.2, 1],
+                  rotate: [0, 10, -10, 0]
+                }}
+                transition={{ 
+                  duration: 4, 
+                  repeat: Infinity,
+                  repeatType: "reverse",
+                  ease: "easeInOut"
+                }}
+                className="text-base sm:text-lg"
+              >
+                ✨
+              </motion.span>
             </div>
             <span className="text-sm sm:text-base text-white/90">Personalized for your interests and style</span>
-          </div>
+          </motion.div>
         </motion.div>
       </div>
+
+      {/* Bottom fade */}
+      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent z-10" />
     </section>
   )
 }
