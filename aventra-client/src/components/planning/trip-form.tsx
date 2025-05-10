@@ -3,7 +3,7 @@
 import { useTripForm } from "@/hooks/useTripForm";
 import { useTripSubmission } from "@/hooks/useTripSubmission";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { FormProvider } from "react-hook-form";
 import { LocationInput } from "./location-input";
 import { DateRangeInput } from "./date-range-input";
@@ -550,6 +550,3 @@ export function TripForm() {
     </TooltipProvider>
   );
 }
-
-// Make sure to import React
-import React from "react";
