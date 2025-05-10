@@ -15,7 +15,6 @@ import {
   Share2,
   Save,
   FileText,
-  CheckCircle2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -261,43 +260,6 @@ export default function FormBasedPlanning({
                           <QuickStatsDisplay />
                         </div>
                       </div>
-                    </div>
-
-                    {/* Form Progress Indicator */}
-                    <div className="flex items-center justify-center px-2">
-                      {[
-                        "Destination",
-                        "Dates",
-                        "Travelers",
-                        "Interests",
-                        "Budget",
-                        "Details",
-                      ].map((step, i) => (
-                        <div key={i} className="flex items-center">
-                          <div
-                            className={cn(
-                              "h-8 w-8 rounded-full flex items-center justify-center",
-                              i <= 2
-                                ? "bg-primary text-white"
-                                : "bg-muted text-muted-foreground"
-                            )}
-                          >
-                            {i <= 2 ? (
-                              <CheckCircle2 className="h-4 w-4" />
-                            ) : (
-                              <span className="text-xs">{i + 1}</span>
-                            )}
-                          </div>
-                          {i < 5 && (
-                            <div
-                              className={cn(
-                                "h-0.5 w-10 md:w-16",
-                                i < 2 ? "bg-primary" : "bg-muted"
-                              )}
-                            ></div>
-                          )}
-                        </div>
-                      ))}
                     </div>
 
                     {/* Main Form */}
