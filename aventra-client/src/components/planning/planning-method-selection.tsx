@@ -8,6 +8,8 @@ import {
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { BackgroundBeams } from "../ui/background-beams";
+import { DotPattern } from "../magicui/dot-pattern";
 
 interface PlanningMethodSelectionProps {
   onSelectMethod: (method: "chat" | "form") => void;
@@ -80,26 +82,11 @@ export default function PlanningMethodSelection({ onSelectMethod }: PlanningMeth
             <div className="absolute inset-0 opacity-30">
               <div className="absolute top-0 left-0 right-0 h-40 bg-gradient-to-b from-blue-500/20 to-transparent"></div>
               <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-indigo-900/30 to-transparent"></div>
-              
-              {/* Animated stars/particles */}
-              <div className="stars absolute inset-0 opacity-70">
-                {[...Array(20)].map((_, i) => (
-                  <div 
-                    key={i}
-                    className="star absolute w-[2px] h-[2px] bg-white rounded-full animate-pulse"
-                    style={{
-                      top: `${Math.random() * 100}%`,
-                      left: `${Math.random() * 100}%`,
-                      animationDelay: `${Math.random() * 5}s`,
-                      animationDuration: `${3 + Math.random() * 3}s`
-                    }}
-                  ></div>
-                ))}
-              </div>
             </div>
 
             {/* Content */}
             <div className="relative p-8 md:p-10 h-full flex flex-col">
+              <BackgroundBeams />
               {/* Top section with badge */}
               <div className="mb-6 flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -218,6 +205,7 @@ export default function PlanningMethodSelection({ onSelectMethod }: PlanningMeth
           onMouseEnter={() => setHoveredCard("form")}
           onMouseLeave={() => setHoveredCard(null)}
         >
+          
           <div
             onClick={() => onSelectMethod("form")}
             className={cn(
@@ -236,9 +224,13 @@ export default function PlanningMethodSelection({ onSelectMethod }: PlanningMeth
               <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl"></div>
               <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl"></div>
             </div>
-
             {/* Content */}
             <div className="relative p-8 md:p-10 h-full flex flex-col">
+              <DotPattern
+        className={cn(
+          "[mask-image:radial-gradient(300px_circle_at_center,white,transparent)]",
+        )}
+      />
               {/* Top section with badge */}
               <div className="mb-6 flex items-center justify-between">
                 <div className="flex items-center gap-3">
