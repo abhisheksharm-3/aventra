@@ -31,12 +31,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import PlanningHeader from "./planning-header";
-import { useUser } from "@/hooks/useUser";
 import { InspirationTab } from "../common/inspiration-tab";
+import { User } from "@/types/appwrite";
 
-interface ChatBasedPlanningProps {
+export interface ChatBasedPlanningProps {
   onSwitchToForm: () => void;
   onBack: () => void;
+  user?: User | null; // Added user prop
 }
 
 type MessageType = {
@@ -54,12 +55,10 @@ type MessageType = {
 export default function ChatBasedPlanning({
   onSwitchToForm,
   onBack,
+  user,
 }: ChatBasedPlanningProps) {
   // Current date/time from the input
   const currentDateTime = "2025-05-10 13:19:30";
-
-  // Use the hook to get user data
-  const { user, isLoading } = useUser();
 
   const [messages, setMessages] = useState<MessageType[]>([
     {
@@ -178,26 +177,12 @@ export default function ChatBasedPlanning({
     }
   };
 
-  // If still loading user data, show loading state
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center animate-pulse">
-            <Sparkles className="h-5 w-5 text-primary/70" />
-          </div>
-          <p className="text-muted-foreground">Loading AventrAI...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/5 pb-8">
       {/* Header Area */}
       <div className="max-w-7xl mx-auto px-4">
         <PlanningHeader
-          user={user}
+          user={user || null}
           title="AventrAI Travel Assistant"
           subtitle="Describe your dream trip and let our AI create your perfect itinerary"
           action={
