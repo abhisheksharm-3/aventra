@@ -8,7 +8,10 @@ const publicRoutes = [
   "/login",
   "/forgot-password",
   "/api/auth/oauth",
-  "/"
+  "/",
+  "/about",
+  "/contact",
+  "/pricing",
 ];
 
 // Define routes that should never be accessible if already authenticated

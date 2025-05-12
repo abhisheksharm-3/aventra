@@ -29,6 +29,11 @@ const nextConfig: NextConfig = {
         hostname: 'dynamic-media-cdn.tripadvisor.com',
         pathname: '**',
       },
+      {
+        protocol: 'https',
+        hostname: 'avatars.githubusercontent.com',
+        pathname: '**',
+      },
     ],
   },
 
