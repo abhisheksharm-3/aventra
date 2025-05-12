@@ -35,7 +35,7 @@ export const tripStyleSchema = z.array(
     "culture", "food", "nature", "urban", "wellness", "nightlife", 
     "cruise", "history"
   ])
-).nonempty("Select at least one trip style");
+).min(1, "Select at least one trip style");
 
 export const preferencesSchema = z.object({
   interests: z.array(z.string()).optional(),

@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useTripForm } from "@/hooks/useTripForm";
 import { useTripSubmission } from "@/hooks/useTripSubmission";
 import { motion, AnimatePresence } from "framer-motion";
@@ -13,6 +14,7 @@ import { TripStyleSelector } from "./trip-style-selector";
 import { PreferencesInput } from "./prefrences-input";
 import { AdditionalContextInput } from "./additional-context";
 import { Button } from "../ui/button";
+import { MultiStepLoader } from "../ui/multi-step-loader";
 import { 
   ChevronDown, 
   ChevronUp, 
@@ -160,14 +162,26 @@ const SmartSuggestions = ({
 };
 
 export function TripForm() {
+  const router = useRouter();
   const form = useTripForm();
   const { submitTrip, isSubmitting, isSuccess, isError, error, data } = useTripSubmission();
   const [expanded, setExpanded] = useState(false);
   const [showSmartSuggestions, setShowSmartSuggestions] = useState(false);
   const [showSaveConfirmation, setShowSaveConfirmation] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
+  const [showLoader, setShowLoader] = useState(false);
   
-
+  // Custom loading states for trip planning
+  const loadingStates = [
+    { text: "Analyzing your travel preferences..." },
+    { text: "Exploring destination insights..." },
+    { text: "Finding the best attractions for you..." },
+    { text: "Designing your personalized itinerary..." },
+    { text: "Optimizing your travel route..." },
+    { text: "Checking for seasonal events and activities..." },
+    { text: "Tailoring recommendations to your interests..." },
+    { text: "Finalizing your perfect trip plan..." },
+  ];
   
   // Track form completion for visual progress indicator
   const { watch, setValue } = form;
@@ -178,6 +192,21 @@ export function TripForm() {
   const travelers = watch("travelers");
   const tripStyle = watch("tripStyle");
   const preferences = watch("preferences");
+  
+  // Handle redirection after successful submission
+  useEffect(() => {
+    if (isSuccess && data?.id) {
+      // Hide loader first
+      setShowLoader(false);
+      
+      // Short delay before redirecting
+      const redirectTimer = setTimeout(() => {
+        router.push(`/plan/generated/${data.id}`);
+      }, 500);
+      
+      return () => clearTimeout(redirectTimer);
+    }
+  }, [isSuccess, data, router]);
   
   // Calculate basic completion percentage and determine active step
   const steps = [
@@ -206,7 +235,7 @@ export function TripForm() {
     // Update the active step based on form completion
     const firstIncompleteIndex = steps.findIndex(s => !s.completed);
     setActiveStep(firstIncompleteIndex !== -1 ? firstIncompleteIndex : completedSteps - 1);
-  }, [destination, startDate, endDate, budget, travelers?.count, tripStyle, preferences?.pace]);
+  }, [destination, startDate, endDate, budget, travelers?.count, tripStyle, preferences?.pace, completedSteps, steps]);
   
   // Apply smart suggestion to form
   const applySmartSuggestion = (suggestionValues: Partial<TripFormValues>) => {
@@ -217,8 +246,12 @@ export function TripForm() {
     setShowSmartSuggestions(false);
   };
   
-  // Fixed type conversion error by using unknown as intermediate type
+  // Modified submit handler to show the loader
   const handleSubmit = form.handleSubmit((formData) => {
+    // Show the loader animation
+    setShowLoader(true);
+    
+    // Submit the form data after a short delay to allow loader to display
     submitTrip(formData as unknown as TripFormValues);
   });
   
@@ -231,6 +264,13 @@ export function TripForm() {
   
   return (
     <TooltipProvider delayDuration={300}>
+      {/* Multi-step loader */}
+      <MultiStepLoader 
+        loadingStates={loadingStates} 
+        loading={showLoader} 
+        duration={2000} 
+      />
+      
       <FormProvider {...form}>
         <motion.div 
           initial={{ opacity: 0, y: 10 }}
@@ -489,7 +529,7 @@ export function TripForm() {
             
             {/* Enhanced Success/Error Messages */}
             <AnimatePresence>
-              {isSuccess && (
+              {isSuccess && !showLoader && (
                 <motion.div 
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}
@@ -520,7 +560,7 @@ export function TripForm() {
                 </motion.div>
               )}
               
-              {isError && (
+              {isError && !showLoader && (
                 <motion.div 
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: "auto" }}

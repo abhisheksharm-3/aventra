@@ -1,0 +1,645 @@
+{
+    "metadata": {
+      "trip_type": "adventure",
+      "duration_days": 6,
+      "total_budget": {
+        "currency": "INR",
+        "total": "120,000",
+        "breakdown": {
+          "accommodation": 35000,
+          "transportation": 45000,
+          "activities": 25000,
+          "food": 15000
+        }
+      },
+      "preferences": {
+        "dietary_restrictions": ["Vegetarian"],
+        "accessibility_needs": false,
+        "pace": "moderate",
+        "context": "First time visiting Ladakh, interested in natural landscapes, monasteries, and local culture"
+      }
+    },
+    "itinerary": [
+      {
+        "day_number": 1,
+        "date": "2025-06-15",
+        "weather": {
+          "temperature": { "min": 5, "max": 20 },
+          "conditions": "Sunny",
+          "advisory": "Altitude sickness possible. Stay hydrated and avoid exertion on first day."
+        },
+        "time_blocks": [
+          {
+            "type": "fixed",
+            "start_time": "09:30",
+            "end_time": "11:00",
+            "duration_minutes": 90,
+            "activity": {
+              "title": "Flight from Chandigarh to Leh",
+              "type": "transportation",
+              "description": "Board the early morning flight to Leh. Enjoy aerial views of the Himalayan ranges.",
+              "location": {
+                "name": "Chandigarh International Airport",
+                "coordinates": {
+                  "lat": 30.6735,
+                  "lng": 76.7885
+                },
+                "google_maps_link": "https://goo.gl/maps/ETXQtRdM2YLp8P3g8"
+              },
+              "duration": 90,
+              "cost": {
+                "currency": "INR",
+                "range": "8,000-12,000"
+              },
+              "images": [
+                "https://images.unsplash.com/photo-1647677733090-03dc771794a9"
+              ],
+              "priority": 5
+            }
+          },
+          {
+            "type": "fixed",
+            "start_time": "11:30",
+            "end_time": "12:30",
+            "duration_minutes": 60,
+            "travel": {
+              "mode": "car",
+              "details": "Airport transfer to hotel in Leh",
+              "duration": 60,
+              "cost": {
+                "currency": "INR",
+                "range": "800"
+              },
+              "operator": "Local taxi service"
+            }
+          },
+          {
+            "type": "fixed",
+            "start_time": "13:00",
+            "end_time": "17:00",
+            "duration_minutes": 240,
+            "activity": {
+              "title": "Rest and Acclimatization",
+              "type": "relaxation",
+              "description": "Rest at the hotel to acclimatize to the high altitude. Drink plenty of fluids and avoid physical exertion.",
+              "location": {
+                "name": "Hotel in Leh",
+                "coordinates": {
+                  "lat": 34.1642,
+                  "lng": 77.5848
+                }
+              },
+              "duration": 240,
+              "priority": 5
+            },
+            "warnings": [
+              {
+                "type": "health",
+                "message": "Acclimatization is crucial. Avoid alcohol and strenuous activities for the first 24 hours.",
+                "priority": 3
+              }
+            ]
+          },
+          {
+            "type": "fixed",
+            "start_time": "18:00",
+            "end_time": "19:30",
+            "duration_minutes": 90,
+            "activity": {
+              "title": "Welcome Dinner at Tibetan Kitchen",
+              "type": "dining",
+              "description": "Enjoy authentic Tibetan and Ladakhi cuisine for your first dinner in Leh",
+              "location": {
+                "name": "Tibetan Kitchen, Leh",
+                "coordinates": {
+                  "lat": 34.1655,
+                  "lng": 77.5827
+                },
+                "google_maps_link": "https://goo.gl/maps/VZyxKDfm9Tv2U4jd9"
+              },
+              "duration": 90,
+              "cost": {
+                "currency": "INR",
+                "range": "600-1,000"
+              },
+              "images": [
+                "https://images.unsplash.com/photo-1576596218485-5af9272c4a97"
+              ],
+              "priority": 4
+            }
+          }
+        ]
+      },
+      {
+        "day_number": 2,
+        "date": "2025-06-16",
+        "weather": {
+          "temperature": { "min": 6, "max": 21 },
+          "conditions": "Sunny",
+          "advisory": ""
+        },
+        "time_blocks": [
+          {
+            "type": "fixed",
+            "start_time": "08:00",
+            "end_time": "09:00",
+            "duration_minutes": 60,
+            "activity": {
+              "title": "Breakfast at Hotel",
+              "type": "dining",
+              "description": "Enjoy a hearty breakfast with mountain views",
+              "location": {
+                "name": "Hotel Restaurant",
+                "coordinates": {
+                  "lat": 34.1642,
+                  "lng": 77.5848
+                }
+              },
+              "duration": 60,
+              "cost": {
+                "currency": "INR",
+                "range": "Included in stay"
+              },
+              "priority": 3
+            }
+          },
+          {
+            "type": "fixed",
+            "start_time": "10:00",
+            "end_time": "13:00",
+            "duration_minutes": 180,
+            "activity": {
+              "title": "Leh Palace and Old Town Tour",
+              "type": "cultural",
+              "description": "Explore the historic 17th-century Leh Palace and the charming old town with its narrow lanes and traditional houses",
+              "location": {
+                "name": "Leh Palace",
+                "coordinates": {
+                  "lat": 34.1663,
+                  "lng": 77.5837
+                },
+                "google_maps_link": "https://goo.gl/maps/xTk4AgSnTZY5ZTL18"
+              },
+              "duration": 180,
+              "cost": {
+                "currency": "INR",
+                "range": "500 (entrance fee and guide)"
+              },
+              "images": [
+                "https://images.unsplash.com/photo-1695954591222-b8645dee4caf"
+              ],
+              "priority": 5
+            }
+          },
+          {
+            "type": "fixed",
+            "start_time": "14:00",
+            "end_time": "17:00",
+            "duration_minutes": 180,
+            "activity": {
+              "title": "Visit to Shanti Stupa",
+              "type": "cultural",
+              "description": "Visit the iconic white-domed Shanti Stupa, offering panoramic views of Leh and surrounding mountains",
+              "location": {
+                "name": "Shanti Stupa",
+                "coordinates": {
+                  "lat": 34.1549,
+                  "lng": 77.5818
+                },
+                "google_maps_link": "https://goo.gl/maps/Sq7WUhRqRkmV7CK78"
+              },
+              "duration": 180,
+              "cost": {
+                "currency": "INR",
+                "range": "100"
+              },
+              "images": [
+                "https://plus.unsplash.com/premium_photo-1661949303004-bab6b7a82912"
+              ],
+              "priority": 4
+            }
+          }
+        ]
+      },
+      {
+        "day_number": 3,
+        "date": "2025-06-17",
+        "weather": {
+          "temperature": { "min": 5, "max": 22 },
+          "conditions": "Sunny with occasional clouds",
+          "advisory": "Bring sun protection"
+        },
+        "time_blocks": [
+          {
+            "type": "fixed",
+            "start_time": "07:00",
+            "end_time": "17:00",
+            "duration_minutes": 600,
+            "activity": {
+              "title": "Pangong Lake Day Trip",
+              "type": "outdoor adventure",
+              "description": "Full day excursion to the stunning Pangong Lake, famous for its changing blue colors and dramatic mountain backdrop",
+              "location": {
+                "name": "Pangong Tso",
+                "coordinates": {
+                  "lat": 33.7617,
+                  "lng": 78.9383
+                },
+                "altitude": 4225,
+                "google_maps_link": "https://goo.gl/maps/P7RnC8HgRvb3ixZ77"
+              },
+              "duration": 600,
+              "cost": {
+                "currency": "INR",
+                "range": "4,500-6,000 (full day tour)"
+              },
+              "images": [
+                "https://images.unsplash.com/photo-1619103801164-1166263cb3b6"
+              ],
+              "priority": 5
+            },
+            "warnings": [
+              {
+                "type": "weather",
+                "message": "Weather conditions can change rapidly. Bring layers and sun protection.",
+                "priority": 2
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "day_number": 4,
+        "date": "2025-06-18",
+        "weather": {
+          "temperature": { "min": 6, "max": 23 },
+          "conditions": "Sunny",
+          "advisory": ""
+        },
+        "time_blocks": [
+          {
+            "type": "fixed",
+            "start_time": "08:00",
+            "end_time": "18:00",
+            "duration_minutes": 600,
+            "activity": {
+              "title": "Nubra Valley and Khardung La Pass",
+              "type": "outdoor adventure",
+              "description": "Travel over Khardung La, one of the world's highest motorable passes, to the beautiful Nubra Valley. Visit Diskit Monastery and enjoy the sand dunes at Hunder.",
+              "location": {
+                "name": "Khardung La Pass",
+                "coordinates": {
+                  "lat": 34.2770,
+                  "lng": 77.6014
+                },
+                "altitude": 5359,
+                "google_maps_link": "https://goo.gl/maps/UqdyhA8PCeGN9wjV7"
+              },
+              "duration": 600,
+              "cost": {
+                "currency": "INR",
+                "range": "5,000-7,000"
+              },
+              "images": [
+                "https://images.unsplash.com/photo-1641599592732-0028d03116bf"
+              ],
+              "priority": 5
+            },
+            "warnings": [
+              {
+                "type": "health",
+                "message": "This is one of the highest motorable passes. Altitude sickness is possible. Carry medication.",
+                "priority": 3
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "day_number": 5,
+        "date": "2025-06-19",
+        "weather": {
+          "temperature": { "min": 7, "max": 22 },
+          "conditions": "Partly cloudy",
+          "advisory": ""
+        },
+        "time_blocks": [
+          {
+            "type": "fixed",
+            "start_time": "09:00",
+            "end_time": "13:00",
+            "duration_minutes": 240,
+            "activity": {
+              "title": "Monastery Tour - Thiksey and Hemis",
+              "type": "cultural",
+              "description": "Visit two of Ladakh's most important monasteries: the 12-storey Thiksey Monastery resembling Potala Palace and the largest, richest monastery in Ladakh, Hemis",
+              "location": {
+                "name": "Thiksey Monastery",
+                "coordinates": {
+                  "lat": 34.0543,
+                  "lng": 77.6654
+                },
+                "google_maps_link": "https://goo.gl/maps/fQJnvmjBoYqJSKTHA"
+              },
+              "duration": 240,
+              "cost": {
+                "currency": "INR",
+                "range": "100-200 per monastery"
+              },
+              "images": [
+                "https://images.unsplash.com/photo-1744197068961-18194526c236"
+              ],
+              "priority": 4
+            }
+          },
+          {
+            "type": "fixed",
+            "start_time": "14:30",
+            "end_time": "17:00",
+            "duration_minutes": 150,
+            "activity": {
+              "title": "Magnetic Hill and Sangam Visit",
+              "type": "sightseeing",
+              "description": "Experience the optical illusion at Magnetic Hill and visit the confluence (Sangam) of Indus and Zanskar rivers",
+              "location": {
+                "name": "Magnetic Hill",
+                "coordinates": {
+                  "lat": 34.2542,
+                  "lng": 77.3614
+                },
+                "google_maps_link": "https://goo.gl/maps/1162gLj1FkhGZUed6"
+              },
+              "duration": 150,
+              "cost": {
+                "currency": "INR",
+                "range": "1,500 (taxi fare)"
+              },
+              "images": [
+                "https://images.unsplash.com/photo-1641319626759-cc9ea5b18107"
+              ],
+              "priority": 3
+            }
+          },
+          {
+            "type": "fixed",
+            "start_time": "19:00",
+            "end_time": "21:00",
+            "duration_minutes": 120,
+            "activity": {
+              "title": "Farewell Dinner at Bon Appetit",
+              "type": "dining",
+              "description": "Enjoy a special farewell dinner at one of Leh's most popular restaurants",
+              "location": {
+                "name": "Bon Appetit",
+                "coordinates": {
+                  "lat": 34.1639,
+                  "lng": 77.5855
+                },
+                "google_maps_link": "https://goo.gl/maps/pXBTFUUz5mYLEFYS7"
+              },
+              "duration": 120,
+              "cost": {
+                "currency": "INR",
+                "range": "1,000-1,500"
+              },
+              "priority": 4
+            }
+          }
+        ]
+      },
+      {
+        "day_number": 6,
+        "date": "2025-06-20",
+        "weather": {
+          "temperature": { "min": 6, "max": 21 },
+          "conditions": "Sunny",
+          "advisory": ""
+        },
+        "time_blocks": [
+          {
+            "type": "flexible",
+            "start_time": "09:00",
+            "end_time": "11:00",
+            "duration_minutes": 120,
+            "activity": {
+              "title": "Leh Main Market Shopping",
+              "type": "shopping",
+              "description": "Last minute shopping at Leh's Main Bazaar for souvenirs, Pashmina shawls, Tibetan handicrafts and jewelry",
+              "location": {
+                "name": "Leh Main Bazaar",
+                "coordinates": {
+                  "lat": 34.1652,
+                  "lng": 77.5845
+                },
+                "google_maps_link": "https://goo.gl/maps/bJcgWQhj6MQpPsZr7"
+              },
+              "duration": 120,
+              "cost": {
+                "currency": "INR",
+                "range": "Varies for shopping"
+              },
+              "images": [
+                "https://images.unsplash.com/photo-1642729347275-d733e6aaf624"
+              ],
+              "priority": 3
+            }
+          },
+          {
+            "type": "fixed",
+            "start_time": "14:00",
+            "end_time": "15:30",
+            "duration_minutes": 90,
+            "travel": {
+              "mode": "flight",
+              "details": "Flight from Leh to Chandigarh",
+              "duration": 90,
+              "cost": {
+                "currency": "INR",
+                "range": "8,000-12,000"
+              },
+              "operator": "Air India/Indigo"
+            }
+          }
+        ]
+      }
+    ],
+    "recommendations": {
+      "accommodations": [
+        {
+          "name": "The Grand Dragon Ladakh",
+          "type": "hotel",
+          "location": {
+            "name": "Leh",
+            "coordinates": {
+              "lat": 34.1511,
+              "lng": 77.5737
+            },
+            "google_maps_link": "https://goo.gl/maps/afZ7K953C2ZivKxL6"
+          },
+          "price_range": "$$$",
+          "rating": 4.7,
+          "images": [
+            "https://lh3.googleusercontent.com/p/AF1QipPJp_V8OzSGWcQqhZBgyxCTzjbLMS6kSS8PQmbd=s1360-w1360-h1020-rw"
+          ],
+          "amenities": [
+            "Free WiFi",
+            "Restaurant",
+            "Bar",
+            "Room service",
+            "Oxygen support",
+            "Mountain view"
+          ],
+          "link": "https://www.thegranddragonladakh.com/"
+        },
+        {
+          "name": "Hotel Ladakh Palace",
+          "type": "hotel",
+          "location": {
+            "name": "Leh",
+            "coordinates": {
+              "lat": 34.1539,
+              "lng": 77.5723
+            },
+            "google_maps_link": "https://goo.gl/maps/4MwXPTvEaTvSXNrP9"
+          },
+          "price_range": "$$",
+          "rating": 4.3,
+          "images": [
+            "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/1d/50/7b/bf/hotel-the-palace.jpg?w=1400&h=800&s=1"
+          ],
+          "amenities": [
+            "Free WiFi",
+            "Restaurant",
+            "Garden",
+            "Airport shuttle",
+            "24-hour front desk"
+          ],
+          "link": "http://www.hotelladakhpalace.com/"
+        }
+      ],
+      "dining": [
+        {
+          "name": "Tibetan Kitchen",
+          "cuisine": "Tibetan, Ladakhi",
+          "price_range": "$$",
+          "dietary_options": ["Vegetarian options", "Vegan options"],
+          "images": [
+            "https://lh3.googleusercontent.com/gps-cs-s/AC9h4nqwP8YD5A2Oc1Ug7r09V5CNM5FyFlLg737tuzXDzYtoURH4ENPOXrP9PUnD0WmrVpargFvThJEVB_Y-U-cozu-JrkM8ztxhFsPDvnYHhPP4UQBNJBqN73DPBRuM8Qt2u4wrLzFu6g=s1360-w1360-h1020-rw"
+          ],
+          "link": "https://goo.gl/maps/WPK9RviMiJKFVZgf8"
+        },
+        {
+          "name": "Bon Appetit",
+          "cuisine": "Multi-cuisine, Continental",
+          "price_range": "$$$",
+          "dietary_options": ["Vegetarian", "Non-vegetarian"],
+          "images": [
+            "https://lh3.googleusercontent.com/gps-cs-s/AC9h4np0_c6OTvzAQOH-xLT6QAbCylBk51WuVB84xsLn2d-co9g2Bz6hDrh4mAEgsg8XNaL6ZSOphG8ck5_CMEcgDQn8iS4_HdYXsgS84K6fhctmTrkISQE5btlyQcLtQzTtRo-XyBUp=s1360-w1360-h1020-rw"
+          ],
+          "link": "https://goo.gl/maps/aQdtTitU4W2p5SP78"
+        }
+      ],
+      "transportation": [
+        {
+          "mode": "car",
+          "details": "Private taxi for local sightseeing",
+          "duration": 0,
+          "cost": {
+            "currency": "INR",
+            "range": "2,500-3,500 per day"
+          },
+          "operator": "Local taxi service"
+        },
+        {
+          "mode": "flight",
+          "details": "Air travel between Chandigarh and Leh",
+          "duration": 90,
+          "cost": {
+            "currency": "INR",
+            "range": "8,000-15,000 one way"
+          },
+          "link": "https://www.makemytrip.com/",
+          "operator": "Air India/Indigo Airlines"
+        }
+      ]
+    },
+    "essential_info": {
+      "documents": [
+        "Valid Indian ID proof or passport for foreign nationals",
+        "Inner Line Permit for certain areas (arrange in Leh)",
+        "Printed hotel reservations",
+        "Flight tickets",
+        "Travel insurance with high-altitude coverage",
+        "COVID-19 vaccination certificate (if applicable)"
+      ],
+      "emergency_contacts": [
+        {
+          "type": "Police",
+          "number": "100"
+        },
+        {
+          "type": "Medical Emergency",
+          "number": "102"
+        },
+        {
+          "type": "SNM Hospital Leh",
+          "number": "01982-252074"
+        }
+      ]
+    },
+    "journey_path": {
+      "overview": [
+        {
+          "lat": 30.6735,
+          "lng": 76.7885
+        },
+        {
+          "lat": 34.1642,
+          "lng": 77.5848
+        },
+        {
+          "lat": 34.1663,
+          "lng": 77.5837
+        },
+        {
+          "lat": 33.7617,
+          "lng": 78.9383
+        },
+        {
+          "lat": 34.2770,
+          "lng": 77.6014
+        },
+        {
+          "lat": 34.0543,
+          "lng": 77.6654
+        },
+        {
+          "lat": 34.2542,
+          "lng": 77.3614
+        }
+      ],
+      "distance_km": 800,
+      "elevation_profile": [
+        {
+          "distance": 0,
+          "elevation": 350
+        },
+        {
+          "distance": 400,
+          "elevation": 3500
+        },
+        {
+          "distance": 550,
+          "elevation": 5359
+        },
+        {
+          "distance": 650,
+          "elevation": 3500
+        },
+        {
+          "distance": 800,
+          "elevation": 350
+        }
+      ]
+    }
+  }

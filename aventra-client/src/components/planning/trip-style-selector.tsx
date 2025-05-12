@@ -6,13 +6,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { type TripFormValues } from "@/lib/validations/trip-schema";
 import { cn } from "@/lib/utils";
 import { Paintbrush, Check } from "lucide-react";
+import { useEffect } from "react";
 
-// Define the literal type for allowed trip styles to fix TypeScript errors
-type TripStyleOption = 
-  | "adventure" | "family" | "dining" | "night-out" 
-  | "date" | "beach" | "culture" | "food" 
-  | "nature" | "urban" | "wellness" | "nightlife" 
-  | "cruise" | "history";
+// Make sure this exactly matches the enum values in your schema
+const VALID_TRIP_STYLES = [
+  "adventure", "family", "dining", "night-out", 
+  "date", "beach", "culture", "food", 
+  "nature", "urban", "wellness", "nightlife", 
+  "cruise", "history"
+] as const;
+
+// Define type using the exact string literals from your schema
+type TripStyleOption = typeof VALID_TRIP_STYLES[number];
 
 // Interface for style item
 interface TripStyleItem {
@@ -28,9 +33,22 @@ interface TripStyleGroup {
 }
 
 export function TripStyleSelector() {
-  const { setValue, watch, formState: { errors } } = useFormContext<TripFormValues>();
+  const { setValue, getValues, watch, formState: { errors } } = useFormContext<TripFormValues>();
   
-  const selectedStyles = watch("tripStyle") || [];
+  // Watch for changes in trip style selection
+  const tripStyleValue = watch("tripStyle");
+  
+  // Set default value on component mount - this runs only once
+  useEffect(() => {
+    const currentValue = getValues("tripStyle");
+    if (!currentValue || currentValue.length === 0) {
+      setValue("tripStyle", ["adventure"]);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  
+  // Get the current selected styles
+  const selectedStyles: TripStyleOption[] = Array.isArray(tripStyleValue) ? tripStyleValue : [];
   
   // Group trip styles by category for better organization
   const tripStyleGroups: TripStyleGroup[] = [
@@ -70,18 +88,32 @@ export function TripStyleSelector() {
     }
   ];
   
+  // Validate style id against valid options
+  const isValidStyle = (id: string): id is TripStyleOption => {
+    return VALID_TRIP_STYLES.includes(id as TripStyleOption);
+  };
+  
   // Flatten all styles for easy access
   const allTripStyles = tripStyleGroups.flatMap(group => group.styles);
   
   const toggleStyle = (styleId: TripStyleOption) => {
+    // Ensure this is a valid style ID
+    if (!isValidStyle(styleId)) {
+      return;
+    }
+    
     if (selectedStyles.includes(styleId)) {
       const newStyles = selectedStyles.filter((id) => id !== styleId);
       // If removing would result in an empty array, don't update
       if (newStyles.length > 0) {
-        setValue("tripStyle", newStyles as [TripStyleOption, ...TripStyleOption[]]);
+        // Ensure only valid enum values are included
+        const validStyles = newStyles.filter(isValidStyle);
+        setValue("tripStyle", validStyles);
       }
     } else {
-      setValue("tripStyle", [...selectedStyles, styleId] as [TripStyleOption, ...TripStyleOption[]]);
+      // Create a new array with the added style, ensuring all values are valid
+      const updatedStyles = [...selectedStyles, styleId].filter(isValidStyle);
+      setValue("tripStyle", updatedStyles);
     }
   };
   
@@ -165,14 +197,14 @@ export function TripStyleSelector() {
             </p>
             
             {/* Show specific combinations */}
-            {selectedStyles.includes('adventure' as TripStyleOption) && 
-             selectedStyles.includes('nature' as TripStyleOption) && (
+            {selectedStyles.includes('adventure') && 
+             selectedStyles.includes('nature') && (
               <p className="text-xs mt-1.5 text-emerald-600">
                 Perfect combination for an outdoor exploration adventure!
               </p>
             )}
-            {selectedStyles.includes('dining' as TripStyleOption) && 
-             selectedStyles.includes('food' as TripStyleOption) && (
+            {selectedStyles.includes('dining') && 
+             selectedStyles.includes('food') && (
               <p className="text-xs mt-1.5 text-amber-600">
                 Your trip will feature amazing culinary experiences!
               </p>
