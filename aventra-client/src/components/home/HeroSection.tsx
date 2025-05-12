@@ -151,11 +151,20 @@ const featuredDestinations = [
   }
 ];
 
+/**
+ * Enhanced Hero Section with Mouse-Reactive Background
+ * 
+ * @version 1.0.0
+ * @lastUpdated 2025-05-12 15:56:15
+ * @maintainer abhisheksharm-3
+ */
 export default function Hero() {
   const [activeDest, setActiveDest] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [, setMousePosition] = useState({ x: 0, y: 0 });
   const sectionRef = useRef<HTMLElement | null>(null);
+  const backgroundRef = useRef<HTMLDivElement | null>(null);
   const touchStartX = useMotionValue(0);
   const touchEndX = useMotionValue(0);
   
@@ -188,6 +197,33 @@ export default function Hero() {
     window.addEventListener('resize', checkIfMobile);
     return () => window.removeEventListener('resize', checkIfMobile);
   }, []);
+  
+  // Mouse movement for parallax effect
+  useEffect(() => {
+    if (isMobile) return;
+    
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!backgroundRef.current) return;
+      
+      const { clientX, clientY } = e;
+      const { innerWidth, innerHeight } = window;
+      
+      // Calculate normalized mouse position (-1 to 1)
+      const x = (clientX / innerWidth) * 2 - 1;
+      const y = (clientY / innerHeight) * 2 - 1;
+      
+      setMousePosition({ x, y });
+      
+      // Apply parallax effect (slower and smoother movement)
+      const moveX = x * -20; // pixels to move horizontally
+      const moveY = y * -20; // pixels to move vertically
+      
+      backgroundRef.current.style.transform = `translate3d(${moveX}px, ${moveY}px, 0) scale(1.1)`;
+    };
+    
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [isMobile]);
   
   // Auto-rotate featured destinations
   useEffect(() => {
@@ -251,7 +287,7 @@ export default function Hero() {
         const parallaxElements = sectionRef.current.querySelectorAll('.parallax-bg');
         parallaxElements.forEach((el: Element) => {
           if (el instanceof HTMLElement) {
-            el.style.transform = `translateY(${scrollPos * parallaxStrength}px)`;
+            el.style.transform = `translate3d(0, ${scrollPos * parallaxStrength}px, 0) scale(1.1)`;
           }
         });
       }
@@ -271,7 +307,7 @@ export default function Hero() {
       aria-roledescription="carousel"
       aria-label="Destination showcase"
     >
-      {/* Enhanced background overlay for better text readability - without vignette */}
+      {/* Enhanced background overlay for better text readability */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/25 to-black/60 z-10" />
       
       {/* Added fade at the bottom of the hero section */}
@@ -282,23 +318,32 @@ export default function Hero() {
         <div className="absolute inset-0 bg-[url('/noise.png')] bg-repeat opacity-20"></div>
       </div>
       
-      {/* Rotating background images */}
+      {/* Rotating background images with mouse parallax */}
       <AnimatePresence mode="wait">
         <motion.div
           key={activeDest}
-          initial={{ opacity: 0, scale: 1.05 }}
-          animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 1.2 }}
           className="absolute inset-0 w-full h-full parallax-bg"
         >
-          <Image 
-            src={featuredDestinations[activeDest].image}
-            fill
-            priority
-            alt={`${featuredDestinations[activeDest].name} - ${featuredDestinations[activeDest].tagline}`}
-            className="object-cover"
-          />
+          <div 
+            ref={backgroundRef}
+            className="absolute inset-0 w-full h-full transition-transform duration-[0.4s] ease-out"
+            style={{ 
+              willChange: 'transform',
+              transformStyle: 'preserve-3d'
+            }}
+          >
+            <Image 
+              src={featuredDestinations[activeDest].image}
+              fill
+              priority
+              alt={`${featuredDestinations[activeDest].name} - ${featuredDestinations[activeDest].tagline}`}
+              className="object-cover"
+            />
+          </div>
         </motion.div>
       </AnimatePresence>
       
