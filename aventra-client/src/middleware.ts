@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifySession } from "./controllers/AuthController";
 import { checkOnboardingStatus } from "./controllers/OnboardingController";
+import { getCurrentUser } from "./controllers/UserController";
 
 // Define routes that don't require authentication
 const publicRoutes = [
@@ -70,6 +71,9 @@ function isApiRoute(path: string): boolean {
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+
+  console.log(`[${timestamp}] Middleware check for: ${pathname}`);
 
   // Allow public assets to bypass middleware completely
   if (isPublicAsset(pathname)) {
@@ -93,6 +97,7 @@ export async function middleware(request: NextRequest) {
       if (isValidSession) {
         // If the user is already authenticated and on an auth route, redirect to dashboard
         if (isAuthRoute(pathname)) {
+          console.log(`[${timestamp}] User is authenticated, redirecting from auth route to dashboard`);
           return NextResponse.redirect(new URL("/dashboard", request.url));
         }
         
@@ -101,20 +106,35 @@ export async function middleware(request: NextRequest) {
           const hasCompletedOnboarding = await checkOnboardingStatus();
           
           if (!hasCompletedOnboarding) {
+            console.log(`[${timestamp}] User has not completed onboarding, redirecting to onboarding`);
             // Redirect to onboarding if not completed
             return NextResponse.redirect(new URL("/onboarding", request.url));
           }
           
           // If user is trying to access onboarding but has already completed it
           if (pathname === "/onboarding") {
+            console.log(`[${timestamp}] User already completed onboarding, redirecting to dashboard`);
             return NextResponse.redirect(new URL("/dashboard", request.url));
           }
         }
         
         // For all other routes, proceed as normal (user is authenticated)
+        // Set an HTTP header with the user's authentication status
+        // This can be used by client-side code to initialize the store
+        const userData = await getCurrentUser();
+        if (userData) {
+          const userId = userData.$id || '';
+          
+          // Add headers for client-side initialization
+          response.headers.set('X-User-Authenticated', 'true');
+          response.headers.set('X-User-Id', userId);
+          console.log(`[${timestamp}] Setting auth headers for user ${userId}`);
+        }
+        
         return response;
       } else {
         // Session exists but is invalid, clear it
+        console.log(`[${timestamp}] Invalid session, clearing cookie`);
         response.cookies.delete("user-session");
       }
     }
@@ -122,9 +142,11 @@ export async function middleware(request: NextRequest) {
     // If no valid session, handle based on the route type
     if (isPublicRoute(pathname)) {
       // Allow access to public routes
+      console.log(`[${timestamp}] Access to public route allowed: ${pathname}`);
       return response;
     } else {
       // Redirect to login for protected routes
+      console.log(`[${timestamp}] No valid session, redirecting to login`);
       const url = new URL("/login", request.url);
       if (pathname !== "/") {
         url.searchParams.set("returnUrl", pathname);
@@ -132,7 +154,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(url);
     }
   } catch (error) {
-    console.error("Middleware authentication error:", error);
+    console.error(`[${timestamp}] Middleware authentication error:`, error);
 
     // In case of any error, clear the session cookie
     response.cookies.delete("user-session");

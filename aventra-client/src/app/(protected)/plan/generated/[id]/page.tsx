@@ -1,16 +1,16 @@
 "use client";
 
 import { useParams, notFound } from "next/navigation";
-import { useUser } from "@/hooks/useUser";
 import { useTrip } from "@/hooks/useTrip";
 import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import TripItineraryDisplay from "@/components/itinerary/trip-itinerary-display";
+import { useUserStore } from "@/stores/userStore";
 
 export default function TripPage() {
   const params = useParams();
   const tripId = params?.id as string;
-  const { user, isLoading: userLoading } = useUser();
+  const { user, isLoading: userLoading } = useUserStore();
   const { trip, isLoading: tripLoading, error, refetch } = useTrip(tripId);
   
   const currentDateTime = new Date().toISOString().replace('T', ' ').substring(0, 19);

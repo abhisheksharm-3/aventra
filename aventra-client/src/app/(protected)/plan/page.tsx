@@ -1,17 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { useUser } from "@/hooks/useUser";
 import Layout from "@/components/layout/Layout";
 import PlanPageSkeleton from "@/components/planning/plan-page-skeleton";
 import PlanningMethodSelection from "@/components/planning/planning-method-selection";
 import ChatBasedPlanning from "@/components/planning/chat-based-planning";
 import FormBasedPlanning from "@/components/planning/form-based-planning";
+import { useUserStore } from "@/stores/userStore";
 
 type PlanningMethod = "undecided" | "chat" | "form";
 
 export default function PlanPage() {
-  const { user, isLoading } = useUser();
+  const { user, isLoading } = useUserStore();
   const [planningMethod, setPlanningMethod] = useState<PlanningMethod>("undecided");
   
   // Handle loading state

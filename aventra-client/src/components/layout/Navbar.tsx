@@ -25,9 +25,9 @@ import SearchPanel from "../navbar/SearchPanel";
 import UserProfileMenu from "../navbar/UserProfileMenu";
 import { MobileMenuToggle } from "../navbar/MobileMenuToggle";
 import { MobileMenu } from "../navbar/MobileMenu";
-import { useUser } from "@/hooks/useUser";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { usePathname } from "next/navigation";
+import { useUserStore } from "@/stores/userStore";
 
 /**
  * Premium Navbar Component
@@ -43,7 +43,7 @@ const Navbar = () => {
   const pathname = usePathname();
 
   // Use our custom hook for authentication state
-  const { isLoading, isLoggedIn } = useUser();
+  const { isLoading, isLoggedIn } = useUserStore();
 
   // Menu items for the main navigation
   const mainNavItems = [

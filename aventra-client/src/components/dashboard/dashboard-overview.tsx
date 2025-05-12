@@ -91,7 +91,7 @@ export default function DashboardOverview({ user }: DashboardOverviewProps) {
       >
         <div>
           <h1 className="text-3xl md:text-4xl font-serif font-medium">
-            Welcome, <span className="text-primary">{user?.name || 'abhisheksharm-3i'}</span>
+            Welcome, <span className="text-primary">{user?.name || user?.email}</span>
           </h1>
           <p className="text-muted-foreground mt-1">{currentDate} • Let&apos;s plan your next adventure</p>
         </div>

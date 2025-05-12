@@ -2,10 +2,10 @@
 import DashboardOverview from "@/components/dashboard/dashboard-overview";
 import DashboardSkeleton from "@/components/dashboard/dashboard-skeleton";
 import Layout from "@/components/layout/Layout";
-import { useUser } from "@/hooks/useUser";
+import { useUserStore } from "@/stores/userStore";
 
 export default function DashboardPage() {
-  const { user, isLoading } = useUser();
+  const { user, isLoading } = useUserStore();
   
   // Prevent layout shifts during loading with skeleton
   if (isLoading) {

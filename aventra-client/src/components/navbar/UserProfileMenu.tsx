@@ -12,26 +12,23 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChevronDown, User, Settings, CreditCard, LogOut, AlertCircle } from "lucide-react";
-import { useUser } from "@/hooks/useUser";
-import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { toast } from "sonner";
+import { useUserStore } from "@/stores/userStore";
 
 export const UserProfileMenu = () => {
-  const { user, isLoading: userLoading } = useUser();
-  const { signOut, isLoading: authLoading, error } = useAuth({
-    redirectAfterLogout: '/login'
-  });
+  const { user, isLoading: userLoading, error, logout } = useUserStore();
+
   const router = useRouter();
 
-  const isLoading = userLoading || authLoading;
+  const isLoading = userLoading;
 
   // Handle any auth errors with toast notifications
   useEffect(() => {
     if (error) {
       toast.error("Authentication Error",{
-        description: error,
+        description: error.message,
         action: (
           <div className="h-8 w-8 bg-destructive/15 rounded-full flex items-center justify-center">
             <AlertCircle className="h-4 w-4" />
@@ -44,7 +41,7 @@ export const UserProfileMenu = () => {
   // Properly implemented logout handler using the auth hook
   const handleLogout = async () => {
     try {
-      const result = await signOut();
+      const result = await logout("/login");
       
       if (result.success) {
         // Success is handled by the hook with auto-redirect
@@ -197,7 +194,7 @@ export const UserProfileMenu = () => {
           className="flex items-center gap-2.5 py-1.5 px-2 rounded-md cursor-pointer text-red-500 hover:text-red-600 hover:bg-red-50/10 focus:bg-red-50/10 focus:text-red-600"
         >
           <LogOut className="h-3.5 w-3.5" />
-          <span className="text-sm">{authLoading ? 'Logging out...' : 'Log out'}</span>
+          <span className="text-sm">{userLoading ? 'Logging out...' : 'Log out'}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
