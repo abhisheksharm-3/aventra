@@ -14,6 +14,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import Link from "next/link";
 import Image from "next/image";
 
+/**
+ * Planning Inspiration Card Component
+ * 
+ * Displays a featured card that highlights AI-powered trip planning capabilities 
+ * with inspirational imagery and quick action buttons to help users start planning.
+ * 
+ * @returns React component with planning inspiration UI
+ */
 export default function PlanningInspirationCard() {
   return (
     <Card className="w-full overflow-hidden border-border/40 relative shadow-sm">
