@@ -249,44 +249,6 @@ const Footer = () => {
             ))}
           </div>
         </motion.div>
-        
-        {/* Newsletter subscription */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.5 }}
-          viewport={{ once: true }}
-          className="mt-12 pt-8 border-t border-border/40 flex flex-col items-center text-center"
-        >
-          <h4 className="font-serif text-xl mb-4">Stay inspired</h4>
-          <p className="text-sm text-muted-foreground max-w-md mb-6">
-            Subscribe to receive updates on new destinations, features and travel inspirations
-          </p>
-          <div className="flex flex-col sm:flex-row gap-3 max-w-md w-full">
-            <input 
-              type="email" 
-              placeholder="Enter your email" 
-              className="flex-1 px-4 py-2.5 rounded-full bg-background border border-border focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/40 transition-colors" 
-            />
-            <button className="px-6 py-2.5 rounded-full bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700 text-white transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center gap-2">
-              <span>Subscribe</span>
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width="18" 
-                height="18" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-              >
-                <path d="m5 12 14 0"></path>
-                <path d="m12 5 7 7-7 7"></path>
-              </svg>
-            </button>
-          </div>
-        </motion.div>
       </div>
     </footer>
   );
