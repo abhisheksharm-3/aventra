@@ -4,7 +4,7 @@
  * It combines multiple section components to create a complete marketing homepage.
  * @returns {JSX.Element} Rendered Home page with all sections wrapped in a Layout
  */
-import HeroSection from "@/components/home/HeroSection";
+import HeroSection from "@/components/home/hero-section";
 import FeaturesSection from "@/components/home/FeaturesSection";
 import TripSection from "@/components/home/TripSection";
 import NightsOutSection from "@/components/home/NightOutSection";

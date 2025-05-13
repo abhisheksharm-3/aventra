@@ -3,7 +3,7 @@
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { motion, useScroll, useTransform } from "framer-motion"
-import { Sparkles } from "lucide-react"
+import { Sparkles, Navigation } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useRef, useState } from "react"
 
@@ -31,7 +31,7 @@ const TripSection = () => {
       <div className="absolute inset-0 -z-10">
         <div className="absolute inset-0 bg-gradient-to-b from-background/95 to-background" />
         
-        {/* Animated gradient blobs - Fixed: Using type: "tween" explicitly */}
+        {/* Animated gradient blobs */}
         <motion.div 
           animate={{ 
             opacity: [0.6, 0.7],
@@ -41,7 +41,7 @@ const TripSection = () => {
             duration: 8, 
             repeat: Infinity, 
             repeatType: "reverse",
-            type: "tween"  // Explicitly use tween for multi-keyframe animations
+            type: "tween"
           }}
           className="absolute top-20 -left-40 md:-left-20 h-[600px] w-[600px] bg-primary/5 rounded-full blur-[120px]" 
         />
@@ -55,7 +55,7 @@ const TripSection = () => {
             duration: 12, 
             repeat: Infinity, 
             repeatType: "reverse",
-            type: "tween",  // Explicitly use tween
+            type: "tween",
             delay: 2
           }}
           className="absolute bottom-0 -right-40 md:-right-20 h-[600px] w-[600px] bg-blue-700/5 rounded-full blur-[120px]" 
@@ -78,7 +78,7 @@ const TripSection = () => {
             viewport={{ once: true, margin: "-100px" }}
             className="order-2 md:order-1"
           >
-            {/* Enhanced section label */}
+            {/* Enhanced section label matching hero styles */}
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -86,8 +86,11 @@ const TripSection = () => {
               viewport={{ once: true }}
               className="mb-7 inline-flex"
             >
-              <span className="px-4 py-2 rounded-full bg-black/30 backdrop-blur-md border border-white/10 text-white/90 text-sm font-medium shadow-lg">
-                AI-Planned Travel
+              <span className="px-5 py-2 rounded-full bg-gradient-to-r from-purple-500/20 to-blue-600/20 backdrop-blur-md border border-border text-foreground/90 text-sm font-medium shadow-lg flex items-center gap-2">
+                <span className="flex items-center justify-center w-5 h-5 rounded-full bg-gradient-to-r from-purple-500 to-blue-600">
+                  <Navigation className="h-3 w-3 text-primary-foreground" />
+                </span>
+                <span>AI-Planned Travel</span>
               </span>
             </motion.div>
             
@@ -122,7 +125,7 @@ const TripSection = () => {
               whileInView={{ opacity: 1 }}
               transition={{ duration: 0.7, delay: 0.3 }}
               viewport={{ once: true }}
-              className="text-muted-foreground/90 mb-8 sm:mb-10 font-light tracking-wide leading-relaxed text-lg md:text-xl max-w-lg"
+              className="text-muted-foreground mb-8 sm:mb-10 font-light tracking-wide leading-relaxed text-lg md:text-xl max-w-lg"
             >
               From weekend escapes to extended adventures, our expertly crafted itineraries ensure every moment of
               your journey is thoughtfully planned and memorable.
@@ -222,7 +225,7 @@ const TripSection = () => {
               <div className="absolute inset-0 bg-gradient-to-tr from-primary/30 via-transparent to-transparent opacity-70 z-10"></div>
               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-primary/30 opacity-70 z-10"></div>
               
-              {/* Enhanced decorative elements - Fixed: Using type: "tween" explicitly */}
+              {/* Enhanced decorative elements */}
               <motion.div 
                 animate={{
                   opacity: [0.5, 0.8],
@@ -232,7 +235,7 @@ const TripSection = () => {
                   duration: 8,
                   repeat: Infinity,
                   repeatType: "reverse",
-                  type: "tween"  // Explicitly use tween
+                  type: "tween"
                 }}
                 className="absolute -top-5 -right-5 w-28 h-28 bg-blue-700/10 rounded-full blur-2xl opacity-70 z-0"
               />
@@ -247,18 +250,18 @@ const TripSection = () => {
                   repeat: Infinity,
                   repeatType: "reverse",
                   delay: 1,
-                  type: "tween"  // Explicitly use tween
+                  type: "tween"
                 }}
                 className="absolute -bottom-10 -left-10 w-44 h-44 bg-primary/15 rounded-full blur-2xl opacity-70 z-0"
               />
               
               {/* Border glow effect */}
-              <div className="absolute inset-0 border border-white/20 rounded-2xl z-20 group-hover:border-primary/30 transition-colors duration-500 pointer-events-none"></div>
+              <div className="absolute inset-0 border border-border rounded-2xl z-20 group-hover:border-primary/30 transition-colors duration-500 pointer-events-none"></div>
               <div className="absolute inset-0 backdrop-blur-[1px] opacity-0 group-hover:opacity-10 transition-opacity duration-500 z-10"></div>
               
               {/* Corner accents */}
-              <div className="absolute top-3 left-3 w-10 h-10 border-t-2 border-l-2 border-white/30 rounded-tl-lg z-20 opacity-70 group-hover:opacity-100 group-hover:border-primary/50 transition-all duration-500"></div>
-              <div className="absolute bottom-3 right-3 w-10 h-10 border-b-2 border-r-2 border-white/30 rounded-br-lg z-20 opacity-70 group-hover:opacity-100 group-hover:border-primary/50 transition-all duration-500"></div>
+              <div className="absolute top-3 left-3 w-10 h-10 border-t-2 border-l-2 border-border rounded-tl-lg z-20 opacity-70 group-hover:opacity-100 group-hover:border-primary/50 transition-all duration-500"></div>
+              <div className="absolute bottom-3 right-3 w-10 h-10 border-b-2 border-r-2 border-border rounded-br-lg z-20 opacity-70 group-hover:opacity-100 group-hover:border-primary/50 transition-all duration-500"></div>
               
               {/* Image with parallax effect */}
               <motion.div 

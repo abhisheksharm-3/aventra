@@ -27,8 +27,8 @@ const FeatureCard = ({ icon, title, description, link, index, color }: FeatureCa
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={cn(
-        "group relative rounded-xl overflow-hidden backdrop-blur-sm border border-white/10",
-        "bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10",
+        "group relative rounded-xl overflow-hidden backdrop-blur-sm border border-border",
+        "bg-card/5 hover:bg-card/10",
         "shadow-sm hover:shadow-xl transition-all duration-500",
       )}
     >
@@ -48,7 +48,7 @@ const FeatureCard = ({ icon, title, description, link, index, color }: FeatureCa
             duration: 3, 
             repeat: Infinity, 
             repeatType: "reverse",
-            type: "tween"  // Explicitly set animation type
+            type: "tween"
           }}
           className={cn(
             "absolute inset-0 blur-xl bg-gradient-to-br",
@@ -80,11 +80,11 @@ const FeatureCard = ({ icon, title, description, link, index, color }: FeatureCa
             whileInView={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 100, delay: index * 0.1 }}
             viewport={{ once: true }}
-            animate={isHovered ? { y: -5 } : { y: 0 }}  // Fixed: using only 2 values
+            animate={isHovered ? { y: -5 } : { y: 0 }}
             className={cn(
               "inline-flex p-3 sm:p-4 rounded-xl",
               "bg-gradient-to-br from-background/70 to-background/30",
-              "border border-white/10 shadow-md",
+              "border border-border shadow-md",
               "transform group-hover:scale-105 transition-transform duration-500"
             )}
           >
@@ -137,7 +137,7 @@ const FeatureCard = ({ icon, title, description, link, index, color }: FeatureCa
           whileInView={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.5, delay: index * 0.1 + 0.3 }}
           viewport={{ once: true }}
-          className="text-muted-foreground/90 mb-5 line-clamp-3 text-sm sm:text-base"
+          className="text-muted-foreground mb-5 line-clamp-3 text-sm sm:text-base"
         >
           {description}
         </motion.p>
@@ -266,7 +266,7 @@ const FeaturesSection = () => {
             duration: 8, 
             repeat: Infinity, 
             repeatType: "reverse",
-            type: "tween"  // Explicitly set animation type
+            type: "tween"
           }}
           className="absolute top-20 -left-40 h-[600px] w-[600px] bg-primary/5 rounded-full blur-[120px]" 
         />
@@ -281,7 +281,7 @@ const FeaturesSection = () => {
             repeat: Infinity, 
             repeatType: "reverse",
             delay: 2,
-            type: "tween"  // Explicitly set animation type
+            type: "tween"
           }}
           className="absolute bottom-0 -right-40 h-[600px] w-[600px] bg-blue-700/5 rounded-full blur-[120px]" 
         />
@@ -302,7 +302,7 @@ const FeaturesSection = () => {
       </div>
 
       {/* Top fade from hero section */}
-      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black to-transparent -mt-32 z-10 pointer-events-none" />
+      <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-background to-transparent -mt-32 z-10 pointer-events-none" />
 
       <div className="container px-4 sm:px-6 md:px-8 w-full mx-auto relative z-10">
         <motion.div 
@@ -320,8 +320,11 @@ const FeaturesSection = () => {
             viewport={{ once: true }}
             className="mb-8 inline-flex"
           >
-            <span className="px-4 py-2 rounded-full bg-black/30 backdrop-blur-md border border-white/10 text-white/90 text-sm font-medium shadow-lg">
-              Tailored Experiences
+            <span className="px-5 py-2 rounded-full bg-gradient-to-r from-purple-500/20 to-blue-600/20 backdrop-blur-md border border-border text-foreground/90 text-sm font-medium shadow-lg flex items-center gap-2">
+              <span className="flex items-center justify-center w-5 h-5 rounded-full bg-gradient-to-r from-purple-500 to-blue-600">
+                <Compass className="h-3 w-3 text-primary-foreground" />
+              </span>
+              <span>Tailored Experiences</span>
             </span>
           </motion.div>
           
@@ -394,7 +397,7 @@ const FeaturesSection = () => {
         >
           <motion.div 
             whileHover={{ scale: 1.05 }}
-            className="inline-flex items-center gap-2.5 py-2.5 px-5 rounded-full bg-black/20 dark:bg-white/10 backdrop-blur-md border border-white/10 shadow-lg"
+            className="inline-flex items-center gap-2.5 py-2.5 px-5 rounded-full bg-gradient-to-r from-purple-500/10 to-blue-600/10 backdrop-blur-md border border-border shadow-lg"
           >
             <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-primary/20 flex items-center justify-center text-primary">
               <motion.span 
@@ -407,14 +410,14 @@ const FeaturesSection = () => {
                   repeat: Infinity,
                   repeatType: "reverse",
                   ease: "easeInOut",
-                  type: "tween"  // Explicitly set animation type
+                  type: "tween"
                 }}
                 className="text-base sm:text-lg"
               >
                 ✨
               </motion.span>
             </div>
-            <span className="text-sm sm:text-base text-white/90">Personalized for your interests and style</span>
+            <span className="text-sm sm:text-base text-foreground/90">Personalized for your interests and style</span>
           </motion.div>
         </motion.div>
       </div>

@@ -4,10 +4,12 @@ import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { useState } from "react";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
-
+  const [hoveredSocial, setHoveredSocial] = useState<string | null>(null);
+  
   return (
     <footer className="relative border-t pt-20 pb-16 overflow-hidden flex items-center justify-center w-screen">
       {/* Background with subtle gradients matching hero */}
@@ -15,6 +17,11 @@ const Footer = () => {
         <div className="absolute inset-0 bg-background/95" />
         <div className="absolute top-20 -left-40 md:-left-20 h-[400px] w-[400px] bg-primary/5 rounded-full blur-[100px] opacity-40 animate-[pulse_12s_infinite]" />
         <div className="absolute bottom-0 -right-40 md:-right-20 h-[300px] w-[300px] bg-blue-700/5 rounded-full blur-[100px] opacity-40 animate-[pulse_16s_infinite]" />
+        
+        {/* Subtle grain texture for depth - matching hero */}
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute inset-0 bg-[url('/noise.png')] bg-repeat opacity-20"></div>
+        </div>
       </div>
 
       {/* Top wave decoration */}
@@ -44,6 +51,11 @@ const Footer = () => {
           >
             <Link href="/" className="flex items-center gap-2.5 group">
               <div className="relative overflow-hidden rounded-xl p-1">
+                {/* Logo hover effect with gradient glow */}
+                <motion.div 
+                  className="absolute inset-0 bg-gradient-to-r from-primary/20 to-blue-600/20 opacity-0 group-hover:opacity-100 blur-md transition-opacity duration-300" 
+                  aria-hidden="true"
+                />
                 <div className="relative z-10 flex items-center gap-2 transition-transform duration-300 group-hover:scale-105">
                   <Image
                     src="/images/logo.png"
@@ -61,8 +73,10 @@ const Footer = () => {
               seeking memorable adventures and gatherings.
             </p>
 
-            <div className="mt-6 inline-flex items-center gap-2 py-2 px-3 rounded-lg bg-background/80 border border-border/30 shadow-sm">
-              <Sparkles className="h-3.5 w-3.5 text-primary opacity-70" />
+            <div className="mt-6 inline-flex items-center gap-2 py-2 px-4 rounded-full bg-gradient-to-r from-primary/10 to-blue-600/10 backdrop-blur-md border border-border shadow-sm">
+              <div className="w-5 h-5 rounded-full bg-gradient-to-r from-primary to-blue-600/80 flex items-center justify-center">
+                <Sparkles className="h-3 w-3 text-primary-foreground" />
+              </div>
               <span className="text-xs sm:text-sm">
                 AI-powered recommendations
               </span>
@@ -105,7 +119,7 @@ const Footer = () => {
               transition={{ duration: 0.5, delay: 0.1 * (index + 1) }}
               viewport={{ once: true, margin: "-50px" }}
             >
-              <h3 className="font-serif mb-5 sm:mb-6 tracking-wide text-xs sm:text-sm">
+              <h3 className="font-serif mb-5 sm:mb-6 tracking-wide text-xs sm:text-sm text-foreground/90">
                 {category.title}
               </h3>
               <ul className="space-y-3 sm:space-y-4 text-xs sm:text-sm">
@@ -127,9 +141,13 @@ const Footer = () => {
                       <span className="group-hover:translate-x-0.5 transition-transform duration-300">
                         {link.name}
                       </span>
-                      <span className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <motion.span 
+                        initial={{ opacity: 0, x: -5 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-primary"
+                      >
                         →
-                      </span>
+                      </motion.span>
                     </Link>
                   </motion.li>
                 ))}
@@ -152,6 +170,7 @@ const Footer = () => {
             {[
               {
                 name: "Twitter",
+                gradient: "from-blue-400 to-blue-600",
                 icon: (
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -170,6 +189,7 @@ const Footer = () => {
               },
               {
                 name: "Instagram",
+                gradient: "from-purple-500 to-fuchsia-500",
                 icon: (
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -190,6 +210,7 @@ const Footer = () => {
               },
               {
                 name: "Facebook",
+                gradient: "from-blue-500 to-blue-700",
                 icon: (
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -211,13 +232,59 @@ const Footer = () => {
                 key={index}
                 href="#"
                 className="text-muted-foreground hover:text-foreground transition-colors group"
+                onMouseEnter={() => setHoveredSocial(social.name)}
+                onMouseLeave={() => setHoveredSocial(null)}
               >
                 <span className="sr-only">{social.name}</span>
-                <div className="p-2 rounded-full bg-background hover:bg-accent/60 transition-colors border border-border/30 group-hover:border-border/50">
-                  {social.icon}
+                <div className={`p-2 rounded-full transition-all duration-300 border ${
+                  hoveredSocial === social.name 
+                    ? `bg-gradient-to-r ${social.gradient} border-transparent shadow-md` 
+                    : "bg-background border-border/30"
+                }`}>
+                  <span className={`${hoveredSocial === social.name ? "text-white" : "text-foreground/80"}`}>
+                    {social.icon}
+                  </span>
                 </div>
               </Link>
             ))}
+          </div>
+        </motion.div>
+        
+        {/* Newsletter subscription */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.5 }}
+          viewport={{ once: true }}
+          className="mt-12 pt-8 border-t border-border/40 flex flex-col items-center text-center"
+        >
+          <h4 className="font-serif text-xl mb-4">Stay inspired</h4>
+          <p className="text-sm text-muted-foreground max-w-md mb-6">
+            Subscribe to receive updates on new destinations, features and travel inspirations
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 max-w-md w-full">
+            <input 
+              type="email" 
+              placeholder="Enter your email" 
+              className="flex-1 px-4 py-2.5 rounded-full bg-background border border-border focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/40 transition-colors" 
+            />
+            <button className="px-6 py-2.5 rounded-full bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-700 text-white transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+              <span>Subscribe</span>
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="18" 
+                height="18" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              >
+                <path d="m5 12 14 0"></path>
+                <path d="m12 5 7 7-7 7"></path>
+              </svg>
+            </button>
           </div>
         </motion.div>
       </div>
