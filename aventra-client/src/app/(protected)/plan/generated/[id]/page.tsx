@@ -4,6 +4,7 @@ import { useParams, notFound } from "next/navigation";
 import TripItineraryDisplay from "@/components/itinerary/trip-itinerary-display";
 import { useUserStore } from "@/stores/userStore";
 import { useItineraryStore } from "@/stores/useItineraryStore";
+import Layout from "@/components/layout/Layout";
 
 export default function TripPage() {
   const params = useParams();
@@ -57,10 +58,12 @@ export default function TripPage() {
   }
 
   return (
-    <TripItineraryDisplay
+    <Layout>
+      <TripItineraryDisplay
       tripData={itineraryData}
       currentDateTime={currentDateTime}
       currentUser={currentUserLogin}
     />
+    </Layout>
   );
 }
