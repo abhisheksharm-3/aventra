@@ -23,14 +23,11 @@ import {
   MapPin, 
   Calendar, 
   Check, 
-  AlertCircle,
   Users,
   Wallet,
   Heart,
   Clock,
   BookMarked,
-  Copy,
-  ThumbsUp,
   Star,
   PanelLeft
 } from "lucide-react";
@@ -164,7 +161,7 @@ const SmartSuggestions = ({
 export function TripForm() {
   const router = useRouter();
   const form = useTripForm();
-  const { submitTrip, isSubmitting, isSuccess, isError, error, data } = useTripSubmission();
+  const { submitTrip, isSubmitting, isSuccess, data } = useTripSubmission();
   const [expanded, setExpanded] = useState(false);
   const [showSmartSuggestions, setShowSmartSuggestions] = useState(false);
   const [showSaveConfirmation, setShowSaveConfirmation] = useState(false);
@@ -526,64 +523,6 @@ export function TripForm() {
                 </div>
               </div>
             </div>
-            
-            {/* Enhanced Success/Error Messages */}
-            <AnimatePresence>
-              {isSuccess && !showLoader && (
-                <motion.div 
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="bg-green-50 border-t border-green-100 p-4 sm:p-6"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                      <Check className="h-5 w-5 text-green-600" />
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium text-green-800 text-lg">Trip Plan Request Submitted!</h3>
-                      <p className="text-sm text-green-700 mt-1">{data?.message || "Your personalized trip itinerary is being created and will be ready soon."}</p>
-                      
-                      <div className="flex gap-3 mt-4">
-                        <Button size="sm" variant="outline" className="gap-1.5">
-                          <Copy className="h-3.5 w-3.5" />
-                          Copy Trip ID
-                        </Button>
-                        <Button size="sm" variant="outline" className="gap-1.5">
-                          <ThumbsUp className="h-3.5 w-3.5" />
-                          Send Feedback
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-              
-              {isError && !showLoader && (
-                <motion.div 
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="bg-red-50 border-t border-red-100 p-4 sm:p-6"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-                      <AlertCircle className="h-5 w-5 text-red-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-red-800 text-lg">Unable to Process Request</h3>
-                      <p className="text-sm text-red-700 mt-1">{error?.message || "There was an error with your trip request. Please check your details and try again."}</p>
-                      
-                      <Button size="sm" variant="outline" className="mt-4 border-red-200 text-red-700 hover:bg-red-50">
-                        Try Again
-                      </Button>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </motion.form>
         </motion.div>
       </FormProvider>

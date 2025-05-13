@@ -1,17 +1,15 @@
 "use client";
 
 import { useParams, notFound } from "next/navigation";
-import { useTrip } from "@/hooks/useTrip";
-import { AlertCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import TripItineraryDisplay from "@/components/itinerary/trip-itinerary-display";
 import { useUserStore } from "@/stores/userStore";
+import { useItineraryStore } from "@/stores/useItineraryStore";
 
 export default function TripPage() {
   const params = useParams();
   const tripId = params?.id as string;
   const { user, isLoading: userLoading } = useUserStore();
-  const { trip, isLoading: tripLoading, error, refetch } = useTrip(tripId);
+  const {itineraryData} = useItineraryStore();
   
   const currentDateTime = new Date().toISOString().replace('T', ' ').substring(0, 19);
   const currentUserLogin = user?.name || user?.email?.split('@')[0] || "Guest";
@@ -21,7 +19,7 @@ export default function TripPage() {
   }
   
   // Handle loading states
-  if (userLoading || tripLoading) {
+  if (userLoading || itineraryData === null) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
@@ -35,32 +33,32 @@ export default function TripPage() {
     );
   }
   
-  // Handle error states
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-6 max-w-md text-center">
-          <AlertCircle className="h-12 w-12 mx-auto text-destructive mb-4" />
-          <h2 className="text-xl font-semibold text-destructive mb-2">
-            Failed to Load Trip
-          </h2>
-          <p className="text-destructive/80 mb-4">{error}</p>
-          <Button variant="outline" onClick={() => refetch()}>
-            Try Again
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  // // Handle error states
+  // if (error) {
+  //   return (
+  //     <div className="min-h-screen flex items-center justify-center">
+  //       <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-6 max-w-md text-center">
+  //         <AlertCircle className="h-12 w-12 mx-auto text-destructive mb-4" />
+  //         <h2 className="text-xl font-semibold text-destructive mb-2">
+  //           Failed to Load Trip
+  //         </h2>
+  //         <p className="text-destructive/80 mb-4">{error}</p>
+  //         <Button variant="outline" onClick={() => refetch()}>
+  //           Try Again
+  //         </Button>
+  //       </div>
+  //     </div>
+  //   );
+  // }
   
   // Handle case when trip is not found
-  if (!trip) {
+  if (!itineraryData) {
     return notFound();
   }
 
   return (
     <TripItineraryDisplay
-      tripData={trip}
+      tripData={itineraryData}
       currentDateTime={currentDateTime}
       currentUser={currentUserLogin}
     />
