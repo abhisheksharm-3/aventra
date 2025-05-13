@@ -5,7 +5,7 @@
  * @returns {JSX.Element} Rendered Home page with all sections wrapped in a Layout
  */
 import HeroSection from "@/components/home/hero-section";
-import FeaturesSection from "@/components/home/FeaturesSection";
+import FeaturesSection from "@/components/home/feature-section";
 import TripSection from "@/components/home/TripSection";
 import NightsOutSection from "@/components/home/NightOutSection";
 import DashboardPreview from "@/components/home/DashboardPreview";
