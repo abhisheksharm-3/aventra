@@ -1,5 +1,21 @@
 import { Bookmark, Camera, Coffee, Compass, Fish, Gem, Globe, Leaf, Mountain, Palette, Palmtree, Salad, Sparkles, Sprout, Star, Utensils, UtensilsCrossed, Wheat, Wine } from "lucide-react";
 
+/**
+ * Onboarding Constants
+ * 
+ * This module defines the constant data used throughout the onboarding flow.
+ * It provides structured data for the various selection options presented to users
+ * during the personalization process.
+ */
+
+/**
+ * User interest preference options
+ * 
+ * Array of selectable interest categories with visual and descriptive elements.
+ * Used in the StepInterests component.
+ * 
+ * @type {Array<{id: string, name: string, icon: JSX.Element, description: string}>}
+ */
 export const preferenceTypes = [
     { id: "minimal", name: "Minimal & Modern", icon: <Palette className="h-5 w-5" />, description: "Clean aesthetics and contemporary designs" },
     { id: "premium", name: "Luxury Experiences", icon: <Gem className="h-5 w-5" />, description: "High-end and exclusive destinations" },
@@ -12,7 +28,15 @@ export const preferenceTypes = [
     { id: "cozy", name: "Cozy & Intimate", icon: <Coffee className="h-5 w-5" />, description: "Warm and intimate atmospheres" },
   ];
 
-  export   const travelStyles = [
+  /**
+   * Travel style preference options
+   * 
+   * Array of selectable travel style categories with visual and descriptive elements.
+   * Used in the StepTravelStyle component.
+   * 
+   * @type {Array<{id: string, name: string, icon: JSX.Element, description: string}>}
+   */
+  export const travelStyles = [
     { 
       id: "luxury", 
       name: "Luxury", 
@@ -50,7 +74,15 @@ export const preferenceTypes = [
       description: "Culinary delights and gastronomic adventures"
     },
   ];
-  export   const dietaryPreferences = [
+  /**
+   * Dietary preference options
+   * 
+   * Array of selectable dietary preference categories with visual and descriptive elements.
+   * Used in the StepDietaryPreferences component.
+   * 
+   * @type {Array<{id: string, name: string, icon: JSX.Element, description: string}>}
+   */
+  export const dietaryPreferences = [
     { 
       id: "none", 
       name: "No Restrictions", 

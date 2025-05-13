@@ -46,7 +46,7 @@ export const preferencesSchema = z.object({
     mobilityNeeds: z.boolean().default(false),
     hearingNeeds: z.boolean().default(false),
     visionNeeds: z.boolean().default(false),
-    dietaryRestrictions: z.boolean().default(false),
+    sensoryNeeds: z.boolean().default(false),
     notes: z.string().optional(),
   }).optional(),
 });

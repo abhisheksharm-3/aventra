@@ -18,7 +18,7 @@ interface AccessibilityOptions {
   mobilityNeeds?: boolean;
   hearingNeeds?: boolean;
   visionNeeds?: boolean;
-  dietaryRestrictions?: boolean;
+  sensoryNeeds?: boolean;
 }
 
 export function PreferencesInput() {
@@ -226,16 +226,16 @@ export function PreferencesInput() {
               
               <div className={cn(
                 "flex items-center justify-between p-3 rounded-md border",
-                accessibility.dietaryRestrictions ? "border-primary/50 bg-primary/5" : "border-border"
+                accessibility.sensoryNeeds ? "border-primary/50 bg-primary/5" : "border-border"
               )}>
                 <div className="flex items-center">
-                  <span className="text-xl mr-3">🍽️</span>
-                  <Label htmlFor="dietary-restrictions" className="font-medium">Dietary Restrictions</Label>
+                  <span className="text-xl mr-3">🔊</span>
+                  <Label htmlFor="sensory-needs" className="font-medium">Sensory Sensitivity</Label>
                 </div>
                 <Switch 
-                  id="dietary-restrictions"
-                  checked={accessibility.dietaryRestrictions || false}
-                  onCheckedChange={(checked) => handleToggleAccessibility("dietaryRestrictions", checked)}
+                  id="sensory-needs"
+                  checked={accessibility.sensoryNeeds || false}
+                  onCheckedChange={(checked) => handleToggleAccessibility("sensoryNeeds", checked)}
                 />
               </div>
             </div>

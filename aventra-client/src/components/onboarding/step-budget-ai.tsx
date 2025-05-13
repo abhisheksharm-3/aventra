@@ -7,10 +7,20 @@ import { Label } from "@/components/ui/label";
 import { useOnboardingStore } from "@/stores/useOnboardingStore";
 
 /**
- * @component StepBudgetAndAI
- * @description A minimal component for setting budget preferences during onboarding.
+ * Budget and AI Preferences Step
  * 
- * @returns {JSX.Element} The rendered budget & AI component
+ * Final step of the onboarding process that allows users to:
+ * 1. Set their budget preference level using an interactive slider
+ * 2. Learn about the AI-powered recommendation features
+ * 
+ * The budget slider uses a continuous scale (0-100) that maps to conceptual
+ * budget categories (budget-conscious, mid-range, premium, luxury).
+ * 
+ * This component serves as both a preference selector and an informational
+ * element to highlight the platform's AI capabilities.
+ * 
+ * @component
+ * @returns {JSX.Element} The rendered budget & AI preferences component
  */
 export function StepBudgetAndAI() {
   const { preferences, setBudget } = useOnboardingStore();

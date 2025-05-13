@@ -6,7 +6,18 @@ import { useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useOnboardingStore } from "@/stores/useOnboardingStore";
-//TODO: Implement it again
+/**
+ * Custom hook for fetching location suggestions based on user input
+ * 
+ * Returns city or location suggestions based on partial text input.
+ * Includes loading states, error handling, and debounced API calls.
+ * 
+ * @param {string} inputValue - The current text input value
+ * @param {Object} options - Configuration options
+ * @param {string} options.locationType - Type of location to search for (e.g., 'cities')
+ * @param {number} options.maxResults - Maximum number of results to return
+ * @returns {Object} Object containing suggestions, loading state, and error state
+ */
 function useLocationSuggestions(
   inputValue: string,
   { locationType, maxResults }: { locationType: string; maxResults: number }
@@ -95,6 +106,22 @@ function useLocationSuggestions(
  * with enhanced location suggestion functionality for residential locations
  *
  * @returns {JSX.Element} The rendered base city component
+ */
+/**
+ * Base City Selection Step
+ * 
+ * Allows users to input their home city during onboarding to provide location-context
+ * for travel recommendations. Features an autocomplete search with city suggestions.
+ * 
+ * Features:
+ * - Autocomplete location search with dropdown suggestions
+ * - Popular city quick-selection buttons
+ * - Debounced search to reduce API calls
+ * - Loading states and error handling
+ * - Outside click detection to close suggestion dropdown
+ * 
+ * @component
+ * @returns {JSX.Element} The rendered base city selection component
  */
 export function StepBaseCity() {
   const { preferences, setBaseCity } = useOnboardingStore();

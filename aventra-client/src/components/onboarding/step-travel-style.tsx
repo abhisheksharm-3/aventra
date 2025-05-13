@@ -6,9 +6,17 @@ import { useOnboardingStore } from "@/stores/useOnboardingStore";
 import { travelStyles } from "@/lib/constants/onboarding";
 
 /**
- * @component StepTravelStyle
- * @description A minimal component for selecting travel style preferences during onboarding.
+ * Travel Style Selection Step
  * 
+ * Allows users to select their preferred travel styles during onboarding.
+ * Displays a grid of options with icons and descriptions using a modern, clean UI.
+ * Features include:
+ * - Visual selection indicators
+ * - Interactive hover states
+ * - Multi-selection capability
+ * - Motion animations for smooth transitions
+ * 
+ * @component
  * @returns {JSX.Element} The rendered travel style selection component
  */
 export function StepTravelStyle() {
