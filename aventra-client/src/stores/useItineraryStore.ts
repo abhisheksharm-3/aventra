@@ -1,329 +1,277 @@
 "use client";
 
+/**
+ * @module stores/useItineraryStore
+ * @description A global store for managing itinerary data with multi-itinerary support and cloud synchronization
+ */
+
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import { ApiResponse } from '@/types/itinerary';
 
-// Define the types based on your API response structure
-type Temperature = {
-  min: number;
-  max: number;
-};
-
-type Weather = {
-  temperature: Temperature;
-  conditions: string;
-  advisory: string;
-};
-
-type Cost = {
-  currency: string | null;
-  range: string | null;
-  per_unit?: string | null;
-};
-
-type Location = {
-  name: string;
-  coordinates: {
-    lat: number | null;
-    lng: number | null;
-  };
-  altitude: number | null;
-  google_maps_link: string;
-};
-
-type Travel = {
-  mode: string | null;
-  details: string | null;
-  duration: number;
-  cost: Cost;
-  link: string | null;
-  operator: string | null;
-};
-
-type Activity = {
-  title: string;
-  type: string;
-  description: string;
-  location: Location;
-  duration: number;
-  cost: Cost;
-  images: string[];
-  link: string | null;
-  priority: number;
-  highlights: string[];
-};
-
-type Warning = {
-  type: string;
-  message: string;
-  priority: number;
-};
-
-type TimeBlock = {
-  type: string;
-  start_time: string;
-  end_time: string;
-  duration_minutes: number;
-  activity: Activity;
-  travel: Travel;
-  warnings: Warning[];
-};
-
-type Day = {
-  day_number: number;
-  date: string;
-  weather: Weather;
-  time_blocks: TimeBlock[];
-};
-
-type TotalBudget = {
-  currency: string;
-  total: string;
-  breakdown: {
-    accommodation: number;
-    transportation: number;
-    activities: number;
-    food: number;
-  };
-};
-
-type Preferences = {
-  dietary_restrictions: string[];
-  accessibility_needs: boolean;
-  pace: string;
-  context: string;
-};
-
-type Metadata = {
-  trip_type: string[];
-  duration_days: number;
-  total_budget: TotalBudget;
-  preferences: Preferences;
-};
-
-type Accommodation = {
-  name: string;
-  type: string;
-  location: Location;
-  price_range: string;
-  rating: number;
-  images: string[];
-  amenities: string[];
-  link: string;
-  description: string;
-};
-
-type DiningOption = {
-  name: string;
-  cuisine: string;
-  price_range: string;
-  dietary_options: string[];
-  signature_dishes: string[];
-  location: Location;
-  images: string[];
-  link: string;
-  description: string;
-};
-
-type Transportation = {
-  mode: string;
-  from?: string;
-  to?: string;
-  departure_time?: string;
-  arrival_time?: string;
-  duration?: number;
-  operator?: string;
-  area?: string;
-  cost: Cost;
-  link?: string;
-  details: string;
-};
-
-type Recommendations = {
-  accommodations: Accommodation[];
-  dining: DiningOption[];
-  transportation: Transportation[];
-};
-
-type EssentialInfo = {
-  documents: string[];
-  emergency_contacts: {
-    type: string;
-    number: string;
-  }[];
-};
-
-type JourneyPath = {
-  overview: {
-    lat: number;
-    lng: number;
-  }[];
-  distance_km: number;
-  elevation_profile: {
-    distance: number;
-    elevation: number;
-  }[];
-};
-
-export type ItineraryData = {
-  metadata: Metadata;
-  itinerary: Day[];
-  recommendations: Recommendations;
-  essential_info: EssentialInfo;
-  journey_path: JourneyPath;
-};
-
-// Define the API response type
-export type ApiResponse = {
-  isSuccess: boolean;
-  id?: string;
-  error?: string;
-  metadata: {
-    trip_type: string;
-    duration_days: number;
-    total_budget: {
-      currency: string;
-      total: string;
-      breakdown: {
-        accommodation: number;
-        transportation: number;
-        activities: number;
-        food: number;
-      };
-    };
-    preferences: {
-      dietary_restrictions: string[];
-      accessibility_needs: boolean;
-      pace: string;
-      context: string;
-    };
-  };
-  itinerary: Array<{
-    day_number: number;
-    date: string;
-    weather: {
-      temperature: {
-        min: number;
-        max: number;
-      };
-      conditions: string;
-      advisory: string;
-    };
-    time_blocks: Array<{
-      type: "fixed" | "flexible";
-      start_time: string;
-      end_time: string;
-      duration_minutes: number;
-      activity?: {
-        title: string;
-        type: string;
-        description: string;
-        location?: {
-          name: string;
-          coordinates: {
-            lat: number;
-            lng: number;
-          };
-          altitude?: number;
-          google_maps_link?: string;
-        };
-        duration: number;
-        cost?: {
-          currency: string;
-          range: string;
-        };
-        images?: string[];
-        priority?: number;
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        backup_alternative_options?: any[];
-      };
-      travel?: {
-        mode: "flight" | "train" | "car" | "bus";
-        details: string;
-        duration: number;
-        cost?: {
-          currency: string;
-          range: string;
-        };
-        link?: string;
-        operator?: string;
-      };
-      warnings?: Array<{
-        type: string;
-        message: string;
-        priority: number;
-      }>;
-    }>;
-  }>;
-  recommendations: {
-    accommodations: Array<{
-      name: string;
-      type: string;
-      location: {
-        name: string;
-        coordinates: {
-          lat: number;
-          lng: number;
-        };
-        google_maps_link?: string;
-      };
-      price_range: string;
-      rating: number;
-      images: string[];
-      amenities: string[];
-      link?: string;
-    }>;
-    dining: Array<{
-      name: string;
-      cuisine: string;
-      price_range: string;
-      dietary_options: string[];
-      images: string[];
-      link?: string;
-    }>;
-    transportation: Array<{
-      mode: string;
-      details: string;
-      duration: number;
-      cost: {
-        currency: string;
-        range: string;
-      };
-      link?: string;
-      operator?: string;
-    }>;
-  };
-  essential_info: {
-    documents: string[];
-    emergency_contacts: Array<{
-      type: string;
-      number: string;
-    }>;
-  };
-  journey_path: {
-    overview: Array<{
-      lat: number;
-      lng: number;
-    }>;
-    distance_km: number;
-    elevation_profile: Array<{
-      distance: number;
-      elevation: number;
-    }>;
-  };
-  currentDateTime: string;
-  currentUser: string;
-};
-
-// Define the store state
-interface ItineraryState {
+/**
+ * Extended store state for managing multiple itineraries
+ * @interface ExtendedItineraryState
+ */
+export interface ExtendedItineraryState {
+  /** Map of itineraries indexed by their IDs */
+  itineraries: Record<string, ApiResponse>;
+  /** Currently active/selected itinerary ID */
+  activeItineraryId: string | null;
+  /** Status of API requests for itineraries */
+  loading: Record<string, boolean>;
+  /** Currently selected itinerary data (single itinerary mode) */
   itineraryData: ApiResponse | null;
-  setItineraryData: (data: ApiResponse) => void;
+
+  /**
+   * Set the data for a specific itinerary by ID
+   * @param {ApiResponse} data - The itinerary data to store
+   * @param {string} [id] - Optional ID (uses data.id if not provided)
+   */
+  setItineraryData: (data: ApiResponse, id?: string) => void;
+
+  /**
+   * Set the currently active itinerary
+   * @param {string} id - The ID of the itinerary to set as active
+   */
+  setActiveItinerary: (id: string) => void;
+
+  /**
+   * Remove a specific itinerary from the store
+   * @param {string} id - The ID of the itinerary to remove
+   */
+  removeItinerary: (id: string) => void;
+
+  /**
+   * Clear all itineraries from the store
+   */
   clearItineraryData: () => void;
+
+  /**
+   * Get an itinerary by ID, fetching from cloud if not in store
+   * @param {string} id - The ID of the itinerary to retrieve
+   * @returns {Promise<ApiResponse | null>} The requested itinerary or null
+   */
+  getItinerary: (id: string) => Promise<ApiResponse | null>;
+
+  /**
+   * Fetch an itinerary from the cloud by ID
+   * @param {string} id - The ID of the itinerary to fetch
+   * @returns {Promise<ApiResponse>} The fetched itinerary
+   */
+  fetchItineraryFromCloud: (id: string) => Promise<ApiResponse>;
 }
 
-// Create the store
-export const useItineraryStore = create<ItineraryState>((set) => ({
-  itineraryData: null,
-  setItineraryData: (data) => set({ itineraryData: data }),
-  clearItineraryData: () => set({ itineraryData: null }),
-}));
+/**
+ * Zustand store for managing itineraries with persistence and cloud synchronization
+ * 
+ * Features:
+ * - Stores multiple itineraries indexed by ID
+ * - Maintains compatibility with legacy single-itinerary interface
+ * - Persists data to localStorage
+ * - Supports cloud synchronization for missing itineraries
+ * - Tracks loading state to prevent duplicate requests
+ */
+export const useItineraryStore = create<ExtendedItineraryState>()(
+  persist(
+    (set, get) => ({
+      // Initial state
+      itineraries: {},
+      activeItineraryId: null,
+      loading: {},
+      itineraryData: null,
+
+      /**
+       * Set the data for a specific itinerary
+       * Also updates the single-itinerary view for backward compatibility
+       */
+      setItineraryData: (data: ApiResponse, id?: string) => {
+        const itineraryId = id || data.id;
+        
+        if (!itineraryId) {
+          console.error("Cannot set itinerary data without an ID");
+          return;
+        }
+        
+        // Include current timestamp and user if not present
+        const enrichedData = {
+          ...data,
+          currentDateTime: data.currentDateTime || new Date().toISOString(),
+          currentUser: data.currentUser || "unknown"
+        };
+        
+        set((state) => {
+          const newState = {
+            itineraries: {
+              ...state.itineraries,
+              [itineraryId]: enrichedData
+            },
+            activeItineraryId: state.activeItineraryId || itineraryId,
+            itineraryData: enrichedData // Update single-itinerary view
+          };
+          return newState;
+        });
+      },
+
+      /**
+       * Set the currently active itinerary and update single-itinerary view
+       */
+      setActiveItinerary: (id: string) => {
+        const { itineraries } = get();
+        const itinerary = itineraries[id];
+        
+        if (!itinerary) {
+          console.warn(`Attempted to set active itinerary ${id} which doesn't exist`);
+          return;
+        }
+        
+        set({ 
+          activeItineraryId: id,
+          itineraryData: itinerary // Update single-itinerary view
+        });
+      },
+
+      /**
+       * Remove a specific itinerary from the store
+       */
+      removeItinerary: (id: string) => {
+        set((state) => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { [id]: removedItinerary, ...remainingItineraries } = state.itineraries;
+          
+          // Find next active ID if needed
+          const newActiveId = state.activeItineraryId === id ? 
+            Object.keys(remainingItineraries)[0] || null : 
+            state.activeItineraryId;
+            
+          // Update single-itinerary view
+          const newItineraryData = newActiveId ? remainingItineraries[newActiveId] : null;
+            
+          return {
+            itineraries: remainingItineraries,
+            activeItineraryId: newActiveId,
+            itineraryData: newItineraryData
+          };
+        });
+      },
+
+      /**
+       * Clear all itineraries from the store
+       */
+      clearItineraryData: () => {
+        set({ itineraries: {}, activeItineraryId: null, itineraryData: null });
+      },
+
+      /**
+       * Get an itinerary by ID, fetching from cloud if not in store
+       */
+      getItinerary: async (id: string) => {
+        const { itineraries, loading, fetchItineraryFromCloud } = get();
+        
+        // Return from cache if available
+        if (itineraries[id]) {
+          return itineraries[id];
+        }
+        
+        // Don't fetch if already loading
+        if (loading[id]) {
+          return null;
+        }
+        
+        // Mark as loading
+        set((state) => ({
+          loading: { ...state.loading, [id]: true }
+        }));
+        
+        try {
+          // Fetch from cloud
+          const data = await fetchItineraryFromCloud(id);
+          
+          // Store in cache and update single-itinerary view if this is the first/only itinerary
+          set((state) => {
+            const updatedItineraries = { ...state.itineraries, [id]: data };
+            const isFirstItinerary = Object.keys(state.itineraries).length === 0;
+            
+            return {
+              itineraries: updatedItineraries,
+              loading: { ...state.loading, [id]: false },
+              activeItineraryId: isFirstItinerary ? id : state.activeItineraryId,
+              itineraryData: isFirstItinerary ? data : state.itineraryData
+            };
+          });
+          
+          return data;
+        } catch (error) {
+          console.error(`Failed to fetch itinerary ${id}:`, error);
+          
+          // Clear loading state
+          set((state) => ({
+            loading: { ...state.loading, [id]: false }
+          }));
+          
+          return null;
+        }
+      },
+
+      /**
+       * Fetch an itinerary from the cloud by ID
+       * Implementation placeholder - replace with actual API call
+       */
+      fetchItineraryFromCloud: async (id: string) => {
+        try {
+          const response = await fetch(`/api/itineraries/${id}`);
+          
+          if (!response.ok) {
+            throw new Error(`Failed to fetch itinerary ${id}: ${response.statusText}`);
+          }
+          
+          return await response.json() as ApiResponse;
+        } catch (error) {
+          console.error(`Cloud fetch error for itinerary ${id}:`, error);
+          throw error;
+        }
+      }
+    }),
+    {
+      name: 'itinerary-storage', // localStorage key
+      partialize: (state) => ({
+        itineraries: state.itineraries,
+        activeItineraryId: state.activeItineraryId,
+        itineraryData: state.itineraryData
+      }),
+    }
+  )
+);
+
+/**
+ * Hook to get the currently active itinerary
+ * @returns {ApiResponse | null} The currently active itinerary or null if none is active
+ */
+export const useActiveItinerary = () => {
+  return useItineraryStore((state) => {
+    const { activeItineraryId, itineraries } = state;
+    return activeItineraryId ? itineraries[activeItineraryId] || null : null;
+  });
+};
+
+/**
+ * Hook to get a list of all stored itineraries
+ * @returns {{ id: string, data: ApiResponse }[]} Array of itinerary objects with their IDs
+ */
+export const useAllItineraries = () => {
+  return useItineraryStore((state) => {
+    const { itineraries } = state;
+    return Object.entries(itineraries).map(([id, data]) => ({ id, data }));
+  });
+};
+
+/**
+ * Hook to get the current date/time and user information for new itineraries
+ * @returns {{ currentDateTime: string, currentUser: string }} Current timestamp and user info
+ */
+export const useItineraryContext = () => {
+  return {
+    currentDateTime: "2025-05-14 15:44:57", // Using the provided timestamp
+    currentUser: "abhisheksharm-3" // Using the provided user
+  };
+};

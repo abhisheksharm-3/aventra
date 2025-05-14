@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useTripStore } from '../stores/useTripFormStore';
+import { useTripFormStore } from '../stores/useTripFormStore';
 import { TrendingDestination } from '@/types/ai';
 import { getTrendingDestinations } from '@/lib/services/gemini/trending-service';
 
@@ -12,7 +12,7 @@ export function useTrendingDestinations() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   
-  const formData = useTripStore((state) => state.formData);
+  const formData = useTripFormStore((state) => state.formData);
   const currentDestination = formData.location?.destination;
   const tripType = formData.preferences?.pace;
   

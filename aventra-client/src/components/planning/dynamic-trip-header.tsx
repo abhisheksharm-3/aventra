@@ -4,14 +4,14 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Navigation } from "lucide-react";
 import { useImages } from "@/hooks/useImages";
-import { useTripStore } from "@/stores/useTripFormStore";
+import { useTripFormStore } from "@/stores/useTripFormStore";
 
 /**
  * Dynamic header component that displays images for both origin and destination
  * Aggregates images from Unsplash and Wikimedia
  */
 export function DynamicTripHeader() {
-    const formData = useTripStore((state) => state.formData);
+    const formData = useTripFormStore((state) => state.formData);
     const [defaultImage] = useState<string>("https://images.unsplash.com/photo-1488085061387-422e29b40080?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop");
 
     // Get location information
@@ -142,11 +142,11 @@ export function DynamicTripHeader() {
                         initial={{ opacity: 0, y: 5 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3 }}
-                        className="text-white text-2xl font-medium"
+                        className="text-white text-2xl font-medium font-serif"
                     >
                         {destination ? `Your Trip to ${destination}` : "Your Perfect Adventure"}
                     </motion.h2>
-                    <p className="text-white/80 text-sm max-w-lg mt-1.5">
+                    <p className="text-white/80 text-sm max-w-lg mt-1.5 font-sans">
                         Complete each section and let our AI craft your personalized travel itinerary
                     </p>
                 </div>

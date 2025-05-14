@@ -27,7 +27,7 @@ import PlanningHeader from "./planning-header";
 import { TripForm } from "./trip-form";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { useTripStore } from "@/stores/useTripFormStore";
+import { useTripFormStore } from "@/stores/useTripFormStore";
 import { useDestinationInsights } from "@/hooks/useDestinationInsights";
 import { useTrendingDestinations } from "@/hooks/useTrendingDestinations";
 import { currencies } from "@/lib/constants/currencies";
@@ -245,7 +245,7 @@ function TrendingDestinations() {
  */
 function DestinationInsights() {
   const { insights, loading } = useDestinationInsights();
-  const destination = useTripStore((state) => state.formData.location?.destination);
+  const destination = useTripFormStore((state) => state.formData.location?.destination);
   
   if (!destination) {
     return null;
@@ -339,7 +339,7 @@ function DestinationInsights() {
  * @returns A grid of statistics about the current trip plan
  */
 function TripStatsDisplay() {
-  const formData = useTripStore((state) => state.formData);
+  const formData = useTripFormStore((state) => state.formData);
 
   /**
    * Calculates the trip duration in days based on start and end dates
@@ -449,7 +449,7 @@ export default function FormBasedPlanning({
   user,
 }: FormBasedPlanningProps): JSX.Element {
   const [showAISidebar, setShowAISidebar] = useState<boolean>(false);
-  const destination = useTripStore((state) => state.formData.location?.destination);
+  const destination = useTripFormStore((state) => state.formData.location?.destination);
   
   // Subtle parallax effect for background elements
   const [scrollY, setScrollY] = useState(0);
@@ -545,13 +545,9 @@ export default function FormBasedPlanning({
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              <Card className="overflow-hidden border-border/30 rounded-xl shadow-xl hover:shadow-2xl transition-shadow duration-500 py-0">
+              <Card className="overflow-hidden border-border/30 rounded-xl shadow-xl hover:shadow-2xl transition-shadow duration-500 py-0 gap-0">
                 <DynamicTripHeader />
-                
-                {/* Core form with clean spacing */}
-                <div className="p-0">
                   <TripForm />
-                </div>
               </Card>
               
               {/* Mobile floating AI insights button */}

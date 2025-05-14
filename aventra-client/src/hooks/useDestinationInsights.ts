@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useTripStore } from '../stores/useTripFormStore';
+import { useTripFormStore } from '../stores/useTripFormStore';
 import { DestinationInsight } from '@/types/ai';
 import { getDestinationTips } from '@/lib/services/gemini/tips-service';
 
@@ -8,7 +8,7 @@ export function useDestinationInsights() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   
-  const formData = useTripStore((state) => state.formData);
+  const formData = useTripFormStore((state) => state.formData);
   const destination = formData.location?.destination;
   const tripType = formData.preferences?.pace; //Trip type can be 'relaxing', 'fast' or 'moderate'.
   const budget = formData.budget?.ceiling
