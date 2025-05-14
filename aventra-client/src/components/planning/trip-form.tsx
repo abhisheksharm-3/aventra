@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useTripForm } from "@/hooks/useTripForm";
+import { useTripForm } from "@/stores/useTripFormStore";
 import { useTripSubmission } from "@/hooks/useTripSubmission";
 import { motion, AnimatePresence } from "framer-motion";
 import React, { useState, useEffect } from "react";

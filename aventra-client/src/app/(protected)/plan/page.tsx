@@ -8,8 +8,31 @@ import ChatBasedPlanning from "@/components/planning/chat-based-planning";
 import FormBasedPlanning from "@/components/planning/form-based-planning";
 import { useUserStore } from "@/stores/userStore";
 
+/**
+ * Defines the possible planning method states for the planning page.
+ * 
+ * @typedef {string} PlanningMethod
+ * @property {"undecided"} undecided - Initial state when user hasn't selected a planning method
+ * @property {"chat"} chat - Chat-based planning interface selected
+ * @property {"form"} form - Form-based planning interface selected
+ */
 type PlanningMethod = "undecided" | "chat" | "form";
 
+/**
+ * PlanPage component that handles different planning methods/interfaces.
+ * 
+ * This component manages the user's planning experience by providing different
+ * planning interfaces based on the user's preference. It supports both
+ * chat-based and form-based planning methods.
+ * 
+ * The component handles:
+ * - Initial method selection interface
+ * - Switching between planning methods
+ * - Loading states while user data is being fetched
+ * - Passing user context to child components
+ * 
+ * @returns {JSX.Element} The rendered plan page component
+ */
 export default function PlanPage() {
   const { user, isLoading } = useUserStore();
   const [planningMethod, setPlanningMethod] = useState<PlanningMethod>("undecided");

@@ -26,17 +26,17 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'dynamic-media-cdn.tripadvisor.com',
-        pathname: '**',
-      },
-      {
-        protocol: 'https',
         hostname: 'avatars.githubusercontent.com',
         pathname: '**',
       },
       {
         protocol: 'https',
         hostname: 'example.com',
+        pathname: '**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'source.unsplash.com',
         pathname: '**',
       },
     ],
