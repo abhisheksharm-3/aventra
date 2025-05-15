@@ -1,93 +1,111 @@
-/**
- * Service to fetch destination images from Unsplash API
- */
 "use server";
-// Unsplash API access key should be set in your environment variables
-const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY;
 
-// Define interfaces for Unsplash API response
+/**
+ * Type definitions for Unsplash API responses
+ */
 interface UnsplashPhotoUrls {
   regular: string;
+  small: string;
 }
 
 interface UnsplashPhoto {
   urls: UnsplashPhotoUrls;
+  width: number;
+  height: number;
 }
 
 interface UnsplashSearchResponse {
   results: UnsplashPhoto[];
+  total: number;
 }
 
 /**
- * Fetches destination images from Unsplash
+ * Cache for Unsplash API responses to reduce API calls and improve performance
+ * Key: destination + count, Value: array of image URLs
+ */
+const UNSPLASH_CACHE = new Map<string, string[]>();
+
+/**
+ * Unsplash API access key from environment variables
+ */
+const UNSPLASH_ACCESS_KEY = process.env.UNSPLASH_ACCESS_KEY;
+
+/**
+ * Fetches destination images from Unsplash API
  * 
  * @param destination - The location to find images for
- * @param count - Number of images to return
- * @returns Array of image URLs
+ * @param count - Number of images to return (default: 1)
+ * @returns Promise resolving to array of image URLs
  */
 export async function getDestinationImages(
   destination: string, 
   count: number = 1
 ): Promise<string[]> {
+  // Return early if API key is not configured
   if (!UNSPLASH_ACCESS_KEY) {
-    console.warn('Unsplash API key not configured');
-    return getPlaceholderImages(destination, count);
+    return [];
   }
   
-  const searchQuery = `${destination} travel landmark tourism`;
-  const apiUrl = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(searchQuery)}&per_page=${count}&orientation=landscape`;
+  // Check cache before making API request
+  const cacheKey = `${destination}:${count}`;
+  if (UNSPLASH_CACHE.has(cacheKey)) {
+    return UNSPLASH_CACHE.get(cacheKey) || [];
+  }
+  
+  // Prepare search query with travel-related terms for better results
+  const searchQuery = `${destination} travel landmark`;
+  
+  // Construct API URL
+  const apiUrl = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(searchQuery)}&per_page=${Math.min(count * 2, 30)}&orientation=landscape`;
   
   try {
+    // Use AbortController for timeout control
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5-second timeout
+    
     const response = await fetch(apiUrl, {
       headers: {
-        'Authorization': `Client-ID ${UNSPLASH_ACCESS_KEY}`
-      }
+        'Authorization': `Client-ID ${UNSPLASH_ACCESS_KEY}`,
+        'Accept-Version': 'v1'
+      },
+      signal: controller.signal,
+      next: { revalidate: 86400 } // Cache for 24 hours (Next.js fetch API)
     });
+    
+    clearTimeout(timeoutId);
     
     if (!response.ok) {
       throw new Error(`Unsplash API error: ${response.status}`);
     }
     
     const data = await response.json() as UnsplashSearchResponse;
-    return data.results.map((photo: UnsplashPhoto) => photo.urls.regular);
+    
+    // Extract and filter image URLs
+    const imageUrls = data.results
+      // Filter out very small or low-quality images
+      .filter(photo => photo.width >= 800 && photo.height >= 600)
+      .map(photo => photo.urls.regular);
+    
+    // Store in cache
+    const result = imageUrls.slice(0, count);
+    UNSPLASH_CACHE.set(cacheKey, result);
+    
+    return result;
   } catch (error) {
     console.error('Error fetching Unsplash images:', error);
-    return getPlaceholderImages(destination, count);
+    // Return empty array to allow fallback to other image services
+    return [];
   }
 }
 
 /**
- * Provides fallback images when Unsplash API is unavailable
+ * Cache management functions
+ * Exported for testing and manual cache control
  */
-function getPlaceholderImages(destination: string, count: number): string[] {
-  // High-quality travel destination images
-  const destinationMap: Record<string, string> = {
-    'kyoto': 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e',
-    'tokyo': 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26',
-    'paris': 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34',
-    'santorini': 'https://images.unsplash.com/photo-1570077188670-e3a8d69ac5ff',
-    'rome': 'https://images.unsplash.com/photo-1552832230-c0197dd311b5',
-    'new york': 'https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9',
-    'prague': 'https://images.unsplash.com/photo-1541849546-b5a5401bae6c',
-  };
-  
-  const defaultImages = [
-    'https://images.unsplash.com/photo-1528702748617-c64d49f918af', // Bali
-    'https://images.unsplash.com/photo-1523906834658-6e24ef2386f9', // Venice
-    'https://images.unsplash.com/photo-1530841377377-3ff06c0ca713', // Generic destination
-    'https://images.unsplash.com/photo-1500835556837-99ac94a94552', // Generic travel
-    'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1', // Mountains
-  ];
-  
-  // Try to find matching destination images
-  const lowerDest = destination.toLowerCase();
-  const matchedImage = Object.keys(destinationMap).find(key => 
-    lowerDest.includes(key)
-  );
-  
-  if (matchedImage) {
-    return [destinationMap[matchedImage], ...defaultImages].slice(0, count);
-  }
-  
-  return defaultImages.slice(0, count);
+export async function clearUnsplashCache(): Promise<void> {
+  UNSPLASH_CACHE.clear();
+}
+
+export async function getCacheSize(): Promise<number> {
+  return UNSPLASH_CACHE.size;
 }

@@ -170,7 +170,7 @@ export type ItineraryData = {
 // Define the API response type
 export type ApiResponse = {
   isSuccess: boolean;
-  id?: string;
+  id: string;
   error?: string;
   metadata: {
     trip_type: string;
