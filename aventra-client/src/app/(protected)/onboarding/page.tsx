@@ -1,17 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { toast } from "sonner";
 import { CheckCircle, Loader2 } from "lucide-react";
+import Image from "next/image";
 
 // UI Components
 import { Button } from "@/components/ui/button";
+import Layout from "@/components/layout/Layout";
 
-// Store and Server Actions
+// Store
 import { useOnboardingStore } from "@/stores/useOnboardingStore";
-import { completeOnboarding, skipOnboarding } from "@/controllers/OnboardingController";
 
 // Onboarding Step Components
 import { StepWelcome } from "@/components/onboarding/step-welcome";
@@ -20,9 +21,34 @@ import { StepBaseCity } from "@/components/onboarding/step-base-city";
 import { StepTravelStyle } from "@/components/onboarding/step-travel-style";
 import { StepDietaryPreferences } from "@/components/onboarding/step-dietary-preferences";
 import { StepBudgetAndAI } from "@/components/onboarding/step-budget-ai";
-import Layout from "@/components/layout/Layout";
-import Image from "next/image";
+import { StepTripPace } from "@/components/onboarding/step-trip-pace";
+import { StepAccessibility } from "@/components/onboarding/step-accessibility-needs";
 
+// Animation variants
+const pageVariants = {
+  initial: (direction: 'forward' | 'backward') => ({
+    opacity: 0,
+    x: direction === 'forward' ? 10 : -10,
+  }),
+  animate: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.3 }
+  },
+  exit: (direction: 'forward' | 'backward') => ({
+    opacity: 0,
+    x: direction === 'forward' ? -10 : 10,
+    transition: { duration: 0.2 }
+  })
+};
+
+/**
+ * Onboarding Page Component
+ * 
+ * Multi-step onboarding flow to collect user preferences and settings
+ * 
+ * @returns {JSX.Element} The onboarding page
+ */
 export default function OnboardingPage() {
   const router = useRouter();
   const { 
@@ -39,9 +65,63 @@ export default function OnboardingPage() {
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
   const [showCompletionAnimation, setShowCompletionAnimation] = useState(false);
   
-  const totalSteps = 6;
+  const totalSteps = 8;
   
-  // Handle keyboard navigation
+  // Initialize onboarding - check status and load preferences
+  useEffect(() => {
+    const initOnboarding = async () => {
+      try {
+        // Safely access store methods
+        const store = useOnboardingStore.getState();
+        
+        // Check if checkOnboardingStatus exists before calling it
+        if (typeof store.checkOnboardingStatus === 'function') {
+          const completed = await store.checkOnboardingStatus();
+          
+          if (completed) {
+            router.push('/dashboard');
+            return;
+          }
+        }
+        
+        // Check if loadUserPreferences exists before calling it
+        if (typeof store.loadUserPreferences === 'function') {
+          await store.loadUserPreferences();
+        }
+      } catch (error) {
+        console.error('Error initializing onboarding:', error);
+      }
+    };
+    
+    initOnboarding();
+  }, [router]);
+  
+  // Check if current step allows proceeding
+  const canProceed = useCallback((): boolean => {
+    if (step === 2 && preferences.interests.length === 0) return false;
+    if (step === 3 && !preferences.baseCity.trim()) return false;
+    return true;
+  }, [step, preferences.interests, preferences.baseCity]);
+  
+  // Handle advancing to next step
+  const handleNext = useCallback(() => {
+    if (!canProceed()) {
+      if (step === 2) toast.error("Please select at least one interest");
+      if (step === 3) toast.error("Please enter your home city");
+      return;
+    }
+    
+    setDirection('forward');
+    nextStep();
+  }, [canProceed, step, nextStep]);
+  
+  // Handle going back to previous step  
+  const handlePrev = useCallback(() => {
+    setDirection('backward');
+    prevStep();
+  }, [prevStep]);
+  
+  // Handle keyboard navigation  
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (isSubmitting) return;
@@ -57,32 +137,7 @@ export default function OnboardingPage() {
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [step, preferences, isSubmitting]);
-  
-  // Check if current step allows proceeding
-  const canProceed = (): boolean => {
-    if (step === 2 && preferences.interests.length === 0) return false;
-    if (step === 3 && !preferences.baseCity.trim()) return false;
-    return true;
-  };
-  
-  // Handle advancing to next step
-  const handleNext = () => {
-    if (!canProceed()) {
-      if (step === 2) toast.error("Please select at least one interest");
-      if (step === 3) toast.error("Please enter your home city");
-      return;
-    }
-    
-    setDirection('forward');
-    nextStep();
-  };
-  
-  // Handle going back to previous step  
-  const handlePrev = () => {
-    setDirection('backward');
-    prevStep();
-  };
+  }, [step, isSubmitting, canProceed, handleNext, handlePrev]);
   
   // Get step title for display
   const getStepTitle = (stepNum: number): string => {
@@ -91,8 +146,10 @@ export default function OnboardingPage() {
       case 2: return "Interests";
       case 3: return "Location";
       case 4: return "Travel Style";
-      case 5: return "Dietary Preferences";
-      case 6: return "Budget & Settings";
+      case 5: return "Trip Pace";
+      case 6: return "Dietary Preferences";
+      case 7: return "Accessibility";
+      case 8: return "Budget & Settings";
       default: return "";
     }
   };
@@ -112,16 +169,15 @@ export default function OnboardingPage() {
       setIsSubmitting(true);
       setShowCompletionAnimation(true);
       
-      // Create FormData and append preferences
-      const formData = new FormData();
-      formData.append("interests", JSON.stringify(preferences.interests));
-      formData.append("travelStyle", JSON.stringify(preferences.travelStyle));
-      formData.append("dietaryPreferences", JSON.stringify(preferences.dietaryPreferences));
-      formData.append("budget", preferences.budget.toString());
-      formData.append("useAI", preferences.useAI.toString());
-      formData.append("baseCity", preferences.baseCity);
+      // Get store instance
+      const store = useOnboardingStore.getState();
+      // Initialize result with default values
+      let result: { success: boolean; error?: string } = { success: false };
       
-      const result = await completeOnboarding(formData);
+      // Check if submitOnboarding exists before calling it
+      if (typeof store.submitOnboarding === 'function') {
+        result = await store.submitOnboarding();
+      }
       
       if (result.success) {
         // Delay redirect to show completion animation
@@ -131,7 +187,7 @@ export default function OnboardingPage() {
         }, 1000);
       } else {
         setShowCompletionAnimation(false);
-        setError(result.error || "Something went wrong. Please try again.");
+        setError(result.error || "Failed to save preferences");
         toast.error(result.error || "Failed to save preferences");
       }
     } catch (err) {
@@ -151,7 +207,15 @@ export default function OnboardingPage() {
       setIsSubmitting(true);
       toast.info("Setting up with default preferences");
       
-      const result = await skipOnboarding();
+      // Get store instance
+      const store = useOnboardingStore.getState();
+      // Initialize result with default values
+      let result: { success: boolean; error?: string } = { success: false };
+      
+      // Check if skipOnboarding exists before calling it
+      if (typeof store.skipOnboarding === 'function') {
+        result = await store.skipOnboarding();
+      }
       
       if (result.success) {
         router.push("/dashboard");
@@ -174,22 +238,19 @@ export default function OnboardingPage() {
     }
   }, [error, setError]);
 
-  // Simple fade transitions
-  const pageVariants = {
-    initial: (direction: string) => ({
-      opacity: 0,
-      x: direction === 'forward' ? 10 : -10,
-    }),
-    animate: {
-      opacity: 1,
-      x: 0,
-      transition: { duration: 0.3 }
-    },
-    exit: (direction: string) => ({
-      opacity: 0,
-      x: direction === 'forward' ? -10 : 10,
-      transition: { duration: 0.2 }
-    })
+  // Render the step component based on current step
+  const renderStepComponent = () => {
+    switch (step) {
+      case 1: return <StepWelcome />;
+      case 2: return <StepInterests />;
+      case 3: return <StepBaseCity />;
+      case 4: return <StepTravelStyle />;
+      case 5: return <StepTripPace />;
+      case 6: return <StepDietaryPreferences />;
+      case 7: return <StepAccessibility />;
+      case 8: return <StepBudgetAndAI />;
+      default: return null;
+    }
   };
 
   return (
@@ -252,6 +313,7 @@ export default function OnboardingPage() {
                 initial={{ width: `${((step - 1) / totalSteps) * 100}%` }}
                 animate={{ width: `${(step / totalSteps) * 100}%` }}
                 transition={{ duration: 0.3 }}
+                aria-hidden="true"
               />
             </div>
           </div>
@@ -276,12 +338,7 @@ export default function OnboardingPage() {
                   animate="animate"
                   exit="exit"
                 >
-                  {step === 1 && <StepWelcome />}
-                  {step === 2 && <StepInterests />}
-                  {step === 3 && <StepBaseCity />}
-                  {step === 4 && <StepTravelStyle />}
-                  {step === 5 && <StepDietaryPreferences />}
-                  {step === 6 && <StepBudgetAndAI />}
+                  {renderStepComponent()}
                 </motion.div>
               </AnimatePresence>
             </div>

@@ -5,13 +5,13 @@
  * @returns {JSX.Element} Rendered Home page with all sections wrapped in a Layout
  */
 import HeroSection from "@/components/home/HeroSection";
-import FeaturesSection from "@/components/home/FeaturesSection";
-import TripSection from "@/components/home/TripSection";
-import NightsOutSection from "@/components/home/NightOutSection";
-import DashboardPreview from "@/components/home/DashboardPreview";
-import TestimonialsSection from "@/components/home/TestimonialsSection";
+import FeaturesSection from "@/components/home/FeatureSection";
+import TripSection from "@/components/home/TripsSection";
+import TestimonialsSection from "@/components/home/TestimonialSection";
 import CTASection from "@/components/home/CTASection";
 import Layout from "@/components/layout/Layout";
+import DashboardPreview from "@/components/home/DashboardPreview";
+import NightsOutSection from "@/components/home/NightOutSection";
 
 export default function Home() {
   return (

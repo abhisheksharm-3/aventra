@@ -4,8 +4,11 @@ import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
 import { Sparkles, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useState } from "react"
 
 const CTASection = () => {
+  const [isHovered, setIsHovered] = useState(false);
+  
   return (
     <section id="cta" className="relative py-24 sm:py-28 md:py-36 overflow-hidden flex items-center justify-center">
       {/* Background gradients */}
@@ -13,12 +16,43 @@ const CTASection = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-primary/90 to-primary"></div>
         <div className="absolute top-0 -left-40 md:-left-20 h-[500px] w-[500px] bg-primary-foreground/10 rounded-full blur-[100px] opacity-60 animate-[pulse_10s_infinite]"></div>
         <div className="absolute bottom-0 -right-40 md:-right-20 h-[500px] w-[500px] bg-blue-300/10 rounded-full blur-[100px] opacity-60 animate-[pulse_15s_infinite]"></div>
+        
+        {/* Subtle grain texture for depth - matching hero */}
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute inset-0 bg-[url('/noise.png')] bg-repeat opacity-20"></div>
+        </div>
       </div>
       
       {/* Decorative elements */}
       <div className="absolute hidden md:block top-20 left-20 w-8 h-8 rounded-full border border-primary-foreground/20 bg-primary-foreground/10 backdrop-blur-sm"></div>
       <div className="absolute hidden md:block bottom-32 right-24 w-12 h-12 rounded-full border border-primary-foreground/20 bg-primary-foreground/10 backdrop-blur-sm"></div>
       <div className="absolute hidden md:block top-40 right-32 w-6 h-6 rounded-full bg-primary-foreground/10"></div>
+      
+      {/* Animated floating elements */}
+      <motion.div 
+        animate={{ 
+          y: [0, -15, 0],
+          rotate: [0, 5, 0]
+        }}
+        transition={{ 
+          duration: 20,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+        className="absolute top-[30%] left-[5%] w-24 h-24 rounded-full bg-primary-foreground/5 blur-[30px] opacity-70 pointer-events-none"
+      />
+      <motion.div 
+        animate={{ 
+          y: [0, 20, 0],
+          rotate: [0, -7, 0]
+        }}
+        transition={{ 
+          duration: 25,
+          repeat: Infinity,
+          ease: "easeInOut"
+        }}
+        className="absolute bottom-[15%] right-[5%] w-32 h-32 rounded-full bg-primary-foreground/5 blur-[40px] opacity-70 pointer-events-none"
+      />
       
       <div className="container px-4 sm:px-6 md:px-8 relative z-10">
         <motion.div 
@@ -34,14 +68,22 @@ const CTASection = () => {
             "leading-[1.2] mb-6"
           )}>
             Elevate Your{" "}
-            <span className="relative text-white/80">
+            <span className="relative text-white/90">
               Experiences
               <motion.span 
-                className="absolute bottom-1 left-0 w-full h-[0.15em] bg-white/60 rounded-full" 
+                className="absolute bottom-1 left-0 w-full h-[0.15em] bg-gradient-to-r from-white/40 via-white/80 to-white/40 rounded-full" 
                 initial={{ scaleX: 0, originX: 0 }}
                 whileInView={{ scaleX: 1 }}
                 transition={{ delay: 0.4, duration: 0.7 }}
                 viewport={{ once: true }}
+              />
+              
+              {/* Subtle glow effect */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                transition={{ delay: 0.8, duration: 0.5 }}
+                className="absolute -inset-x-2 -inset-y-1 bg-white/10 blur-xl rounded-full -z-10"
               />
             </span>
           </h2>
@@ -51,7 +93,7 @@ const CTASection = () => {
             whileInView={{ opacity: 1 }}
             transition={{ duration: 0.7, delay: 0.3 }}
             viewport={{ once: true }}
-            className="mt-6 sm:mt-8 max-w-2xl mx-auto text-primary-foreground/90 font-light tracking-wide text-base sm:text-lg"
+            className="mt-6 sm:mt-8 max-w-2xl mx-auto text-primary-foreground/90 font-light tracking-wide text-base sm:text-lg md:text-xl"
           >
             Join our community of discerning adventurers and begin crafting unforgettable moments
             tailored to your unique preferences and aspirations.
@@ -66,20 +108,56 @@ const CTASection = () => {
           >
             <Button 
               size="lg" 
-              variant="secondary" 
-              className="px-8 sm:px-10 py-6 h-auto rounded-full bg-primary-foreground/90 text-primary hover:bg-primary-foreground transition-all duration-300 shadow-md hover:shadow-lg group"
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
+              className="px-8 sm:px-10 py-6 h-auto rounded-full bg-gradient-to-r from-primary-foreground/90 to-primary-foreground text-primary hover:from-primary-foreground hover:to-primary-foreground/90 transition-all duration-300 shadow-md hover:shadow-lg group relative overflow-hidden"
             >
-              <span className="group-hover:translate-x-0.5 transition-transform duration-300">Learn More</span>
-              <ArrowRight className="h-4 w-4 ml-2 opacity-80" />
+              {/* Button glow effect on hover */}
+              <motion.div 
+                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                style={{
+                  boxShadow: "inset 0 0 20px 5px rgba(255,255,255,0.2)"
+                }}
+              />
+              
+              <motion.div
+                animate={isHovered ? {
+                  scale: 1.1
+                } : {
+                  scale: 1
+                }}
+                transition={{
+                  duration: 0.6,
+                  type: "spring",
+                  stiffness: 300
+                }}
+                className="relative flex items-center"
+              >
+                <span className="group-hover:translate-x-0.5 transition-transform duration-300">Learn More</span>
+                <ArrowRight className="h-4 w-4 ml-2 opacity-80" />
+              </motion.div>
             </Button>
             
             <Button 
               size="lg" 
               variant="default" 
-              className="px-8 sm:px-10 py-6 h-auto rounded-full bg-white text-primary hover:bg-white/90 transition-all duration-300 shadow-md hover:shadow-lg group border border-white/20"
+              className="px-8 sm:px-10 py-6 h-auto rounded-full bg-white text-primary hover:bg-white/90 transition-all duration-300 shadow-md hover:shadow-lg group border border-white/20 relative overflow-hidden"
             >
-              <Sparkles className="h-3.5 w-3.5 opacity-70 mr-2" />
-              <span className="group-hover:translate-x-0.5 transition-transform duration-300">Begin Your Journey</span>
+              {/* Button glow effect on hover */}
+              <motion.div 
+                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                style={{
+                  boxShadow: "inset 0 0 20px 5px rgba(0,0,0,0.05)"
+                }}
+              />
+              
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                className="relative flex items-center"
+              >
+                <Sparkles className="h-3.5 w-3.5 opacity-70 mr-2" />
+                <span className="group-hover:translate-x-0.5 transition-transform duration-300">Begin Your Journey</span>
+              </motion.div>
             </Button>
           </motion.div>
           
@@ -90,9 +168,23 @@ const CTASection = () => {
             viewport={{ once: true }}
             className="mt-10 flex justify-center"
           >
-            <div className="inline-flex items-center gap-2 py-2 px-4 rounded-full bg-primary-foreground/10 backdrop-blur-sm border border-primary-foreground/20 shadow-sm">
-              <div className="w-5 h-5 rounded-full bg-white/10 flex items-center justify-center text-white">
-                <span className="text-xs">✦</span>
+            <div className="inline-flex items-center gap-2.5 py-2.5 px-5 rounded-full bg-primary-foreground/10 backdrop-blur-md border border-primary-foreground/20 shadow-lg">
+              <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-white/10 flex items-center justify-center text-white">
+                <motion.span 
+                  animate={{ 
+                    scale: [1, 1.2],
+                    rotate: [0, 10]
+                  }}
+                  transition={{ 
+                    duration: 2, 
+                    repeat: Infinity,
+                    repeatType: "reverse",
+                    ease: "easeInOut"
+                  }}
+                  className="text-base sm:text-lg"
+                >
+                  ✦
+                </motion.span>
               </div>
               <span className="text-xs sm:text-sm text-primary-foreground/90">Personalized experiences awaiting you</span>
             </div>

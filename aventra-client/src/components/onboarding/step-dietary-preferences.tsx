@@ -6,9 +6,19 @@ import { useOnboardingStore } from "@/stores/useOnboardingStore";
 import { dietaryPreferences } from "@/lib/constants/onboarding";
 
 /**
- * @component StepDietaryPreferences
- * @description A minimal component for selecting dietary preferences during onboarding.
+ * Dietary Preferences Selection Step
  * 
+ * Allows users to select their dietary preferences and restrictions during onboarding.
+ * This component is designed to collect important food preference information
+ * to personalize restaurant recommendations and meal suggestions during travel.
+ * 
+ * Features:
+ * - Clear visual indicators for selected options
+ * - Comprehensive list of common dietary restrictions
+ * - Smooth animations for component transitions
+ * - Special "no restrictions" option that behaves as a radio button
+ * 
+ * @component
  * @returns {JSX.Element} The rendered dietary preferences selection component
  */
 export function StepDietaryPreferences() {

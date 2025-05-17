@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { Eye, EyeClosed } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -29,9 +30,12 @@ import {
   PasswordStrengthIndicator,
   StatusMessage,
 } from "@/components/forms/login-form-components";
-import useAuth from "@/hooks/useAuth";
-import { Eye, EyeClosed } from "lucide-react";
+import { useUserStore } from "@/stores/userStore";
 
+/**
+ * LoginForm component that handles both sign-in and sign-up flows
+ * Includes email/password authentication and social provider options
+ */
 export default function LoginForm() {
   // State management with enums for better type safety
   const [authMode, setAuthMode] = useState<AuthMode>(AuthMode.SIGN_IN);
@@ -43,7 +47,7 @@ export default function LoginForm() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const { login, register, loginWithGoogle, loginWithGithub } = useAuth();
+  const { login, register, loginWithGoogle, loginWithGithub } = useUserStore();
 
   // Get return URL from query params
   const returnUrl = searchParams.get("returnUrl") || "/dashboard";
@@ -67,8 +71,25 @@ export default function LoginForm() {
     },
   });
 
-  // Login form submission handler
-  const onLoginSubmit = async (data: LoginFormValues) => {
+  // Derived state
+  const isLoading = status === FormStatus.LOADING;
+  const isSignUp = authMode === AuthMode.SIGN_UP;
+
+  /**
+   * Switches between login and signup modes
+   */
+  const switchAuthMode = useCallback((mode: AuthMode) => {
+    if (!isLoading) {
+      setAuthMode(mode);
+      setError(null);
+      setSuccess(null);
+    }
+  }, [isLoading]);
+
+  /**
+   * Handles login form submission
+   */
+  const onLoginSubmit = useCallback(async (data: LoginFormValues) => {
     setStatus(FormStatus.LOADING);
     setError(null);
     setSuccess(null);
@@ -96,10 +117,12 @@ export default function LoginForm() {
       setError("An unexpected error occurred. Please try again.");
       setStatus(FormStatus.ERROR);
     }
-  };
+  }, [login, router, returnUrl]);
 
-  // Signup form submission handler
-  const onSignupSubmit = async (data: SignupFormValues) => {
+  /**
+   * Handles signup form submission
+   */
+  const onSignupSubmit = useCallback(async (data: SignupFormValues) => {
     setStatus(FormStatus.LOADING);
     setError(null);
     setSuccess(null);
@@ -128,10 +151,12 @@ export default function LoginForm() {
       setError("An unexpected error occurred. Please try again.");
       setStatus(FormStatus.ERROR);
     }
-  };
+  }, [register, router, returnUrl]);
 
-  // Social login handler
-  const handleSocialLogin = async (provider: SocialProvider) => {
+  /**
+   * Handles social authentication
+   */
+  const handleSocialLogin = useCallback(async (provider: SocialProvider) => {
     setStatus(FormStatus.LOADING);
     setError(null);
 
@@ -160,40 +185,48 @@ export default function LoginForm() {
       setError(`Failed to authenticate with ${provider}. Please try again.`);
       setStatus(FormStatus.ERROR);
     }
-  };
+  }, [loginWithGoogle, loginWithGithub]);
 
-  const isLoading = status === FormStatus.LOADING;
-  const isSignUp = authMode === AuthMode.SIGN_UP;
+  /**
+   * Toggles between showing and hiding password
+   */
+  const togglePasswordVisibility = useCallback(() => {
+    setShowPassword(prev => !prev);
+  }, []);
 
   return (
     <div className="w-full">
       {/* Auth mode toggle */}
       <div className="flex p-1 mb-8 bg-accent/30 rounded-lg w-full border border-border/50 shadow-sm">
         <button
-          onClick={() => !isLoading && setAuthMode(AuthMode.SIGN_IN)}
+          type="button"
+          onClick={() => switchAuthMode(AuthMode.SIGN_IN)}
           className={`flex-1 py-2.5 px-4 rounded-md font-medium text-sm transition-all ${
             !isSignUp
               ? "bg-background text-foreground shadow-sm"
               : "text-muted-foreground hover:text-foreground/80"
           }`}
           disabled={isLoading}
+          aria-pressed={!isSignUp}
         >
           Sign In
         </button>
         <button
-          onClick={() => !isLoading && setAuthMode(AuthMode.SIGN_UP)}
+          type="button"
+          onClick={() => switchAuthMode(AuthMode.SIGN_UP)}
           className={`flex-1 py-2.5 px-4 rounded-md font-medium text-sm transition-all ${
             isSignUp
               ? "bg-background text-foreground shadow-sm"
               : "text-muted-foreground hover:text-foreground/80"
           }`}
           disabled={isLoading}
+          aria-pressed={isSignUp}
         >
           Create Account
         </button>
       </div>
 
-      {/* Status messages */}
+      {/* Status messages with animations */}
       <AnimatePresence mode="wait">
         {error && (
           <motion.div
@@ -220,7 +253,7 @@ export default function LoginForm() {
         )}
       </AnimatePresence>
 
-      {/* Form */}
+      {/* Auth form with animations */}
       <AnimatePresence mode="wait">
         <motion.div
           key={isSignUp ? "signup" : "login"}
@@ -234,6 +267,7 @@ export default function LoginForm() {
               <form
                 onSubmit={signupForm.handleSubmit(onSignupSubmit)}
                 className="space-y-5"
+                aria-label="Sign up form"
               >
                 <FormField
                   control={signupForm.control}
@@ -249,6 +283,9 @@ export default function LoginForm() {
                             {...field}
                             placeholder="Username"
                             className="pl-10 h-12 border-border/50 bg-accent/30"
+                            aria-label="Username"
+                            autoComplete="username"
+                            data-testid="username-input"
                           />
                         </div>
                       </FormControl>
@@ -272,6 +309,9 @@ export default function LoginForm() {
                             type="email"
                             placeholder="Email address"
                             className="pl-10 h-12 border-border/50 bg-accent/30"
+                            aria-label="Email address"
+                            autoComplete="email"
+                            data-testid="email-input"
                           />
                         </div>
                       </FormControl>
@@ -295,11 +335,16 @@ export default function LoginForm() {
                             type={showPassword ? "text" : "password"}
                             placeholder="Password"
                             className="pl-10 pr-10 h-12 border-border/50 bg-accent/30"
+                            aria-label="Password"
+                            autoComplete="new-password"
+                            data-testid="password-input"
                           />
                           <button
                             type="button"
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                            onClick={() => setShowPassword(!showPassword)}
+                            onClick={togglePasswordVisibility}
+                            aria-label={showPassword ? "Hide password" : "Show password"}
+                            tabIndex={-1}
                           >
                             {showPassword ? <EyeClosed size={18} /> : <Eye size={18} />}
                           </button>
@@ -318,6 +363,7 @@ export default function LoginForm() {
                   type="submit"
                   className="w-full h-12 rounded-lg text-base font-medium mt-6 bg-primary hover:bg-primary/90 cursor-pointer"
                   disabled={isLoading}
+                  data-testid="signup-button"
                 >
                   {isLoading ? (
                     <div className="flex items-center gap-2">
@@ -335,6 +381,7 @@ export default function LoginForm() {
               <form
                 onSubmit={loginForm.handleSubmit(onLoginSubmit)}
                 className="space-y-5"
+                aria-label="Sign in form"
               >
                 <FormField
                   control={loginForm.control}
@@ -351,6 +398,9 @@ export default function LoginForm() {
                             type="email"
                             placeholder="Email address"
                             className="pl-10 h-12 border-border/50 bg-accent/30"
+                            aria-label="Email address"
+                            autoComplete="email"
+                            data-testid="email-input"
                           />
                         </div>
                       </FormControl>
@@ -374,11 +424,16 @@ export default function LoginForm() {
                             type={showPassword ? "text" : "password"}
                             placeholder="Password"
                             className="pl-10 pr-10 h-12 border-border/50 bg-accent/30"
+                            aria-label="Password"
+                            autoComplete="current-password"
+                            data-testid="password-input"
                           />
                           <button
                             type="button"
                             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                            onClick={() => setShowPassword(!showPassword)}
+                            onClick={togglePasswordVisibility}
+                            aria-label={showPassword ? "Hide password" : "Show password"}
+                            tabIndex={-1}
                           >
                             {showPassword ? <EyeClosed size={18} /> : <Eye size={18} />}
                           </button>
@@ -402,6 +457,7 @@ export default function LoginForm() {
                   type="submit"
                   className="w-full h-12 rounded-lg text-base font-medium mt-2 bg-primary hover:bg-primary/90 cursor-pointer"
                   disabled={isLoading}
+                  data-testid="signin-button"
                 >
                   {isLoading ? (
                     <div className="flex items-center gap-2">
@@ -418,6 +474,7 @@ export default function LoginForm() {
         </motion.div>
       </AnimatePresence>
 
+      {/* Divider for social login options */}
       <div className="relative my-8">
         <div className="absolute inset-0 flex items-center">
           <div className="w-full border-t border-border/40"></div>
@@ -429,6 +486,7 @@ export default function LoginForm() {
         </div>
       </div>
 
+      {/* Social login buttons */}
       <div className="grid grid-cols-1 gap-3">
         <Button
           type="button"
@@ -436,6 +494,8 @@ export default function LoginForm() {
           className="h-12 flex items-center justify-center gap-2 border-border/50 bg-accent/30 hover:bg-accent/50"
           onClick={() => handleSocialLogin(SocialProvider.GOOGLE)}
           disabled={isLoading}
+          aria-label="Continue with Google"
+          data-testid="google-login-button"
         >
           {Icons.Google}
           <span>Continue with Google</span>
@@ -447,6 +507,8 @@ export default function LoginForm() {
           className="h-12 flex items-center justify-center gap-2 border-border/50 bg-accent/30 hover:bg-accent/50"
           onClick={() => handleSocialLogin(SocialProvider.GITHUB)}
           disabled={isLoading}
+          aria-label="Continue with GitHub"
+          data-testid="github-login-button"
         >
           {Icons.GitHub}
           <span>Continue with GitHub</span>
