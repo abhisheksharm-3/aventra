@@ -4,7 +4,9 @@ import json
 from datetime import datetime, timedelta
 from typing import Dict, Any, List, Tuple
 import concurrent.futures
+from urllib.parse import quote
 
+import urllib
 from app.models.request import ItineraryRequest
 from app.models.response import ItineraryResponse
 from app.services.gemini_service import get_gemini_structured_response
@@ -35,210 +37,6 @@ async def generate_component_with_fallback(component_func, request, fallback_dat
         logger.info(f"Using fallback data for {component_name}")
         return fallback_data
 
-async def generate_day_itinerary(day_number: int, date_str: str, request: ItineraryRequest, 
-                                meta_info: Dict, transport_options: Dict, 
-                                activities: Dict, accommodations_dining: Dict,
-                                weather: Dict) -> Dict:
-    """
-    Generate itinerary for a single day.
-    """
-    logger.info(f"Generating itinerary for day {day_number} ({date_str})")
-    
-    # Get weather info for this day
-    day_weather = None
-    for forecast in weather.get("forecast", []):
-        if forecast.get("date") == date_str:
-            day_weather = {
-                "temperature": forecast.get("temperature", {"min": 15, "max": 25}),
-                "conditions": forecast.get("conditions", "No data"),
-                "advisory": forecast.get("advisory", "No advisory")
-            }
-            break
-    
-    if not day_weather:
-        day_weather = {
-            "temperature": {"min": 15, "max": 25},
-            "conditions": "No weather data available",
-            "advisory": "No weather advisory available"
-        }
-    
-    # Create prompt for day generation
-    is_first_day = day_number == 1
-    is_last_day = day_number == (datetime.strptime(request.dates.endDate, "%Y-%m-%d") - 
-                               datetime.strptime(request.dates.startDate, "%Y-%m-%d")).days + 1
-    
-    special_considerations = ""
-    if is_first_day:
-        special_considerations = "This is the arrival day, include transportation from origin and check-in activities."
-    elif is_last_day:
-        special_considerations = "This is the departure day, include check-out and return transportation."
-        
-    # Select activities based on trip style
-    relevant_activities = []
-    for category in activities:
-        if isinstance(activities[category], list):
-            for activity in activities[category]:
-                activity_info = {
-                    "title": activity.get("title", "Unknown"),
-                    "type": activity.get("type", "Unknown"),
-                    "description": activity.get("description", ""),
-                    "duration": activity.get("duration", 120),
-                    "priority": activity.get("priority", 3)
-                }
-                relevant_activities.append(activity_info)
-    
-    # Get dining options
-    dining_options = accommodations_dining.get("dining", [])
-    
-    prompt = f"""
-    Generate a detailed itinerary for DAY {day_number} ({date_str}) of a trip to {request.location.destination}.
-    
-    Day specifics:
-    - Date: {date_str}
-    - Weather: {day_weather["conditions"]}, Temperature: {day_weather["temperature"]["min"]}°C to {day_weather["temperature"]["max"]}°C
-    - Weather advisory: {day_weather["advisory"]}
-    - {special_considerations}
-    
-    Trip styles: {', '.join(request.tripStyle)}
-    Pace preference: {request.preferences.pace}
-    
-    Create a detailed schedule from morning to evening with at least 5-7 time blocks that include:
-    - Breakfast, lunch, and dinner at appropriate times
-    - Main sightseeing activities suitable for the day's weather
-    - Travel between locations with appropriate modes of transportation
-    - Rest periods if needed based on the preferred pace ({request.preferences.pace})
-    - A mix of fixed and flexible activities
-    
-    Remember these dietary preferences: {', '.join(request.preferences.dietaryPreferences) if request.preferences.dietaryPreferences else 'No specific preferences'}
-    
-    RELEVANT ACTIVITIES TO CHOOSE FROM:
-    {json.dumps(relevant_activities[:15], indent=2)}
-    
-    DINING OPTIONS:
-    {json.dumps(dining_options, indent=2)}
-    
-    VERY IMPORTANT: Follow the exact JSON schema below:
-    ```json
-    {{
-      "day_number": {day_number},
-      "date": "{date_str}",
-      "weather": {{
-        "temperature": {{
-          "min": number,
-          "max": number
-        }},
-        "conditions": string,
-        "advisory": string
-      }},
-      "time_blocks": [
-        {{
-          "type": "fixed" or "flexible",
-          "start_time": "HH:MM", (24-hour format),
-          "end_time": "HH:MM", (24-hour format),
-          "duration_minutes": integer,
-          "activity": {{
-            "title": string,
-            "type": string,
-            "description": string,
-            "location": {{
-              "name": string,
-              "coordinates": {{
-                "lat": number,
-                "lng": number
-              }},
-              "altitude": number,
-              "google_maps_link": string or null
-            }},
-            "duration": integer,
-            "cost": {{
-              "currency": string,
-              "range": string,
-              "per_unit": string or null
-            }},
-            "images": [string],
-            "link": string or null,
-            "priority": integer (1-5),
-            "highlights": [string]
-          }},
-          "travel": {{
-            "mode": string,
-            "details": string,
-            "duration": integer,
-            "cost": {{
-              "currency": string,
-              "range": string
-            }},
-            "link": string or null,
-            "operator": string or null
-          }},
-          "warnings": [
-            {{
-              "type": string,
-              "message": string,
-              "priority": integer (1-3)
-            }}
-          ]
-        }}
-        // Add at least 5-7 time blocks covering the full day
-      ]
-    }}
-    ```
-    
-    IMPORTANT: 
-    1. Create at least 5-7 time blocks for the day covering morning to evening, including meals and activities
-    2. Place warnings at the time_block level, not inside activities
-    3. Use "link" instead of "booking_link" in all objects
-    4. Provide google_maps_link for all locations, using the location name to generate the link
-    """
-    
-    system_instruction = """
-    You are an expert travel planner specializing in creating detailed, personalized itineraries.
-    Create a COMPLETE daily schedule with multiple time blocks throughout the day (at least 5-7).
-    Include DETAILED information for each activity including location, cost, duration, and descriptions.
-    Always follow EXACTLY the specified JSON schema with all required fields.
-    Remember to use "link" instead of "booking_link" or "reservation_link" in all objects.
-    """
-    
-    try:
-        day_itinerary = await get_gemini_structured_response(prompt, system_instruction)
-        logger.info(f"Successfully generated itinerary for day {day_number}")
-        return day_itinerary
-    except Exception as e:
-        logger.error(f"Error generating day {day_number} itinerary: {str(e)}")
-        
-        # Return a minimal day structure as fallback
-        return {
-            "day_number": day_number,
-            "date": date_str,
-            "weather": day_weather,
-            "time_blocks": [
-                {
-                    "type": "flexible",
-                    "start_time": "09:00",
-                    "end_time": "17:00",
-                    "duration_minutes": 480,
-                    "activity": {
-                        "title": f"Day {day_number} Exploration",
-                        "type": "sightseeing",
-                        "description": f"Explore {request.location.destination} at your own pace.",
-                        "location": {
-                            "name": request.location.destination,
-                            "coordinates": {"lat": 0, "lng": 0},
-                            "altitude": None,
-                            "google_maps_link": None
-                        },
-                        "duration": 480,
-                        "cost": {"currency": "INR", "range": "Varies", "per_unit": None},
-                        "images": [],
-                        "link": None,
-                        "priority": 3,
-                        "highlights": []
-                    },
-                    "warnings": []
-                }
-            ]
-        }
-
 async def generate_metadata(request: ItineraryRequest) -> Dict:
     """Generate metadata for the itinerary"""
     start_date = datetime.strptime(request.dates.startDate, "%Y-%m-%d")
@@ -246,11 +44,11 @@ async def generate_metadata(request: ItineraryRequest) -> Dict:
     duration_days = (end_date - start_date).days + 1
     
     # Extract budget info
-    currency = "USD"
+    currency = "₹"  # Changed from "USD" to "₹"
     total_budget = "Budget not specified"
     
     if request.budget:
-        currency = request.budget.currency
+        currency = "₹"  # Changed from request.budget.currency to "₹"
         total_budget = str(request.budget.ceiling)
     
     # Generate breakdown based on trip style
@@ -259,21 +57,27 @@ async def generate_metadata(request: ItineraryRequest) -> Dict:
     activities_pct = 0.2
     food_pct = 0.3  # Standard allocation
     
+    # Convert trip_style array to string if it contains elements
+    trip_type = request.tripStyle[0] if request.tripStyle else "general"
+    
     if "food" in request.tripStyle:
         food_pct = 0.6
         accommodation_pct = 0.2
         transportation_pct = 0.1
         activities_pct = 0.1
+        trip_type = "food"
     elif "adventure" in request.tripStyle:
         activities_pct = 0.4
         accommodation_pct = 0.2
         transportation_pct = 0.3
         food_pct = 0.1
+        trip_type = "adventure"
     elif "luxury" in request.tripStyle:
         accommodation_pct = 0.5
         food_pct = 0.2
         transportation_pct = 0.2
         activities_pct = 0.1
+        trip_type = "luxury"
         
     budget_value = 50000  # default
     if request.budget:
@@ -295,7 +99,7 @@ async def generate_metadata(request: ItineraryRequest) -> Dict:
         ])
     
     return {
-        "trip_type": request.tripStyle,
+        "trip_type": trip_type,  # Changed from array to string
         "duration_days": duration_days,
         "total_budget": {
             "currency": currency,
@@ -359,9 +163,517 @@ async def generate_essential_info(request: ItineraryRequest, destination_info: D
             ]
         }
 
+async def generate_day_with_assigned_venues(day_number, date_str, request, weather, assigned_venues):
+    """
+    Generate a single day itinerary with pre-assigned venues.
+    """
+    logger.info(f"Generating itinerary for day {day_number} ({date_str}) with pre-assigned venues")
+    
+    # Get restaurants and activities for this day
+    restaurants = assigned_venues["restaurants"] 
+    activities = assigned_venues["activities"]
+    
+    # Get weather data for this specific day
+    day_weather = {"temperature": {"min": 15, "max": 25}, "conditions": "No data available", "advisory": "Check local conditions"}
+    for forecast in weather.get("forecast", []):
+        if forecast.get("date") == date_str:
+            day_weather = {
+                "temperature": {
+                    "min": forecast["temperature"]["min"],
+                    "max": forecast["temperature"]["max"]
+                },
+                "conditions": forecast["conditions"],
+                "advisory": forecast["advisory"]
+            }
+            break
+    
+    # EXTREMELY SIMPLIFIED PROMPT - focus only on generating basic time blocks
+    prompt = f"""
+    Create a day schedule for Day {day_number} in {request.location.destination}.
+    
+    Available restaurants:
+    {", ".join([r.get("name", "Restaurant") for r in restaurants])}
+    
+    Available activities:
+    {", ".join([a.get("title", "Activity") for a in activities])}
+    
+    Create exactly 5 time blocks for the day with:
+    - Time block for breakfast (morning)
+    - Time block for a morning activity
+    - Time block for lunch (midday)
+    - Time block for an afternoon activity
+    - Time block for dinner (evening)
+    
+    Use this exact JSON structure:
+    {{
+      "time_blocks": [
+        {{
+          "type": "fixed",
+          "start_time": "08:00",
+          "end_time": "09:00",
+          "activity": {{
+            "title": "RESTAURANT NAME HERE FOR BREAKFAST"
+          }}
+        }},
+        {{
+          "type": "flexible",
+          "start_time": "10:00",
+          "end_time": "12:00",
+          "activity": {{
+            "title": "ACTIVITY NAME HERE"
+          }}
+        }}
+      ]
+    }}
+    
+    YOU MUST INCLUDE EXACTLY 5 TIME BLOCKS.
+    """
+    
+    system_instruction = "Create a simple day schedule with exactly 5 time blocks using only the restaurant and activity names provided."
+    
+    try:
+        # Try to get a basic schedule from Gemini
+        day_outline = await get_gemini_structured_response(prompt, system_instruction)
+        
+        # If we don't get time blocks, go straight to fallback
+        time_blocks = day_outline.get("time_blocks", [])
+        if len(time_blocks) < 3:
+            logger.warning(f"Not enough time blocks for day {day_number}, using fallback")
+            return create_fallback_day(day_number, date_str, restaurants, activities, day_weather, request)
+        
+        # Now enrich these simple time blocks with our venue data
+        enriched_time_blocks = []
+        restaurant_map = {r["name"].lower(): r for r in restaurants}
+        activity_map = {a["title"].lower(): a for a in activities}
+        
+        # Process each time block
+        for block in time_blocks:
+            activity_title = block.get("activity", {}).get("title", "")
+            if not activity_title:
+                continue
+                
+            activity_title_lower = activity_title.lower()
+            
+            # Create base time block
+            time_block = {
+                "type": block.get("type", "fixed"),
+                "start_time": block.get("start_time", "09:00"),
+                "end_time": block.get("end_time", "10:00"),
+                "duration_minutes": int((datetime.strptime(block.get("end_time", "10:00"), "%H:%M") - 
+                                      datetime.strptime(block.get("start_time", "09:00"), "%H:%M")).total_seconds() / 60)
+            }
+            
+            # Find matching venue (restaurant or activity)
+            venue_data = None
+            venue_type = None
+            
+            # Check restaurants
+            for name, data in restaurant_map.items():
+                if name in activity_title_lower or activity_title_lower in name:
+                    venue_data = data
+                    venue_type = "restaurant"
+                    break
+                    
+            # Check activities if not found in restaurants
+            if not venue_data:
+                for name, data in activity_map.items():
+                    if name in activity_title_lower or activity_title_lower in name:
+                        venue_data = data
+                        venue_type = "activity"
+                        break
+            
+            # Create rich activity data
+            if venue_data:
+                if venue_type == "restaurant":
+                    # Determine meal type
+                    meal_type = "meal"
+                    if "breakfast" in activity_title_lower or int(block.get("start_time", "09:00").split(":")[0]) < 11:
+                        meal_type = "breakfast"
+                    elif "lunch" in activity_title_lower or 11 <= int(block.get("start_time", "09:00").split(":")[0]) < 15:
+                        meal_type = "lunch" 
+                    else:
+                        meal_type = "dinner"
+                    
+                    # Format the price range correctly with descriptive text
+                    # Changed from descriptive to numeric range
+                    price_range = venue_data.get("price_range", "600-1200 per person")
+                    if "per person" not in price_range and "for" not in price_range:
+                        price_range = f"{price_range} per person"
+                    # Convert "INR" to "₹" in price range
+                    price_range = price_range.replace("INR", "₹")
+                        
+                    activity = {
+                        "title": activity_title,
+                        "type": "dining",
+                        "description": f"Enjoy a delightful {meal_type} at {venue_data.get('name')}, featuring local specialties and fresh ingredients.",
+                        "location": venue_data.get("location") or {
+                            "name": venue_data.get("name"),
+                            "coordinates": {"lat": 0, "lng": 0},
+                            "google_maps_link": f"https://www.google.com/maps/search/?api=1&query={urllib.parse.quote(venue_data.get('name', 'restaurant'))}"
+                            # Changed link to google_maps_link
+                        },
+                        "duration": time_block["duration_minutes"],
+                        "cost": {
+                            "currency": "₹",  # Changed from "INR" to "₹"
+                            "range": price_range
+                        },
+                        "images": venue_data.get("images", []),
+                        "link": venue_data.get("link") or venue_data.get("reservation_link"),  # Changed the order, preferring "link"
+                        "priority": 2,
+                        "highlights": ["Local cuisine", "Authentic flavors", "Dining experience"]
+                    }
+                else:
+                    # Format the cost range correctly with descriptive text
+                    cost = venue_data.get("cost") or {"currency": "₹", "range": "500-1000 per person"}  # Changed "INR" to "₹"
+                    if "range" in cost and "per person" not in cost["range"] and "for" not in cost["range"]:
+                        cost["range"] = f"{cost['range']} per person"
+                    # Convert "INR" to "₹" in cost range
+                    if "currency" in cost and cost["currency"] == "INR":
+                        cost["currency"] = "₹"
+                        
+                    activity = {
+                        "title": activity_title,
+                        "type": venue_data.get("type", "sightseeing"),
+                        "description": venue_data.get("description", f"Explore {venue_data.get('title')} and discover the local culture and attractions."),
+                        "location": venue_data.get("location") or {
+                            "name": venue_data.get("title"),
+                            "coordinates": {"lat": 0, "lng": 0},
+                            "google_maps_link": f"https://www.google.com/maps/search/?api=1&query={urllib.parse.quote(venue_data.get('title', 'attraction'))}"
+                            # Changed link to google_maps_link
+                        },
+                        "duration": time_block["duration_minutes"],
+                        "cost": cost,
+                        "images": venue_data.get("images", []),
+                        "link": venue_data.get("link") or venue_data.get("booking_link"),  # Changed the order, preferring "link"
+                        "priority": venue_data.get("priority", 2),
+                        "highlights": venue_data.get("highlights") or ["Cultural experience", "Local attraction", "Must-see destination"]
+                    }
+            else:
+                # Fallback if we can't match the venue
+                activity = {
+                    "title": activity_title,
+                    "type": "sightseeing" if "restaurant" not in activity_title_lower else "dining",
+                    "description": f"Experience {activity_title} in {request.location.destination}.",
+                    "location": {
+                        "name": activity_title,
+                        "coordinates": {"lat": 0, "lng": 0},
+                        "google_maps_link": f"https://www.google.com/maps/search/?api=1&query={urllib.parse.quote(activity_title)}"
+                        # Changed link to google_maps_link
+                    },
+                    "duration": time_block["duration_minutes"],
+                    "cost": {"currency": "₹", "range": "500-800 per person"},  # Changed "INR" to "₹" and made range numeric
+                    "images": [],
+                    "link": None,
+                    "priority": 2,
+                    "highlights": ["Local experience", "Regional specialty"]
+                }
+                
+            # Add travel information with consistent operator field
+            travel = {
+                "mode": block.get("travel", {}).get("mode", "taxi"),
+                "details": block.get("travel", {}).get("details", f"Travel to {activity_title}"),
+                "duration_minutes": block.get("travel", {}).get("duration", 15),
+                "cost": {
+                    "currency": "₹",  # Changed from "INR" to "₹"
+                    "range": "0" if block.get("travel", {}).get("mode") == "walking" else "200-300"
+                },
+                "link": block.get("travel", {}).get("link"),
+                "operator": block.get("travel", {}).get("operator", "Local Transportation Service")
+            }
+            
+            # Add warnings (ensure we always have at least one)
+            warnings = [{
+                "type": "general",
+                "message": day_weather.get("advisory", "Check local conditions before heading out."),
+                "priority": 2
+            }]
+            
+            # Complete the time block
+            time_block["activity"] = activity
+            time_block["travel"] = travel
+            time_block["warnings"] = warnings
+            
+            enriched_time_blocks.append(time_block)
+            
+        # Create the final day structure
+        day_itinerary = {
+            "day_number": day_number,
+            "date": date_str,
+            "weather": day_weather,
+            "time_blocks": enriched_time_blocks
+        }
+        
+        return day_itinerary
+        
+    except Exception as e:
+        logger.error(f"Error generating day {day_number}: {str(e)}")
+        return create_fallback_day(day_number, date_str, restaurants, activities, day_weather, request)
+    
+def create_fallback_day(day_number, date_str, restaurants, activities, weather, request):
+    """
+    Create a fallback day itinerary if generation fails.
+    """
+    time_blocks = []
+    current_hour = 8
+    
+    # Morning - Breakfast
+    if restaurants:
+        breakfast = restaurants[0]
+        # Format price range correctly with descriptive text
+        price_range = breakfast.get("price_range", "400-600 per person")  # Changed to numeric range
+        if "per person" not in price_range and "for" not in price_range:
+            price_range = f"{price_range} per person"
+        # Convert "INR" to "₹" in price range
+        price_range = price_range.replace("INR", "₹")
+            
+        time_blocks.append({
+            "type": "fixed",
+            "start_time": f"{current_hour:02d}:00",
+            "end_time": f"{current_hour+1:02d}:00",
+            "duration_minutes": 60,
+            "activity": {
+                "title": f"Breakfast at {breakfast.get('name', 'Local Restaurant')}",
+                "type": "dining",
+                "description": f"Start your day with breakfast at {breakfast.get('name', 'a local restaurant')}",
+                "location": breakfast.get("location") or {
+                    "name": breakfast.get("name", "Local Restaurant"),
+                    "coordinates": {"lat": 0, "lng": 0},
+                    "google_maps_link": f"https://www.google.com/maps/search/?api=1&query={urllib.parse.quote(breakfast.get('name', 'restaurant'))}"
+                    # Changed link to google_maps_link
+                },
+                "duration": 60,
+                "cost": {
+                    "currency": "₹",  # Changed from "INR" to "₹"
+                    "range": price_range
+                },
+                "images": breakfast.get("images", []),
+                "link": breakfast.get("link") or breakfast.get("reservation_link"),  # Changed to prefer "link"
+                "priority": 2,
+                "highlights": ["Morning meal", "Local cuisine", "Energizing start"]
+            },
+            "travel": {
+                "mode": "walking",
+                "details": "Walk to restaurant",
+                "duration_minutes": 15,
+                "cost": {"currency": "₹", "range": "0"},  # Changed from "INR" to "₹"
+                "operator": "Self-guided"
+            },
+            "warnings": [{
+                "type": "general",
+                "message": weather.get("advisory", "Check local conditions"),
+                "priority": 2
+            }]
+        })
+        current_hour += 2
+    
+    # Morning activity
+    if activities:
+        morning_activity = activities[0]
+        # Format cost range correctly with descriptive text
+        cost = morning_activity.get("cost") or {"currency": "₹", "range": "500-800 per person"}  # Changed "INR" to "₹" and made range numeric
+        if "range" in cost and "per person" not in cost["range"] and "for" not in cost["range"]:
+            cost["range"] = f"{cost['range']} per person"
+        # Convert "INR" to "₹" in cost
+        if "currency" in cost and cost["currency"] == "INR":
+            cost["currency"] = "₹"
+            
+        time_blocks.append({
+            "type": "flexible",
+            "start_time": f"{current_hour:02d}:00",
+            "end_time": f"{current_hour+2:02d}:30",
+            "duration_minutes": 150,
+            "activity": {
+                "title": morning_activity.get("title", "Local Attraction"),
+                "type": morning_activity.get("type", "sightseeing"),
+                "description": morning_activity.get("description", f"Visit {morning_activity.get('title', 'local attraction')}"),
+                "location": morning_activity.get("location") or {
+                    "name": morning_activity.get("title", "Local Attraction"),
+                    "coordinates": {"lat": 0, "lng": 0},
+                    "google_maps_link": f"https://www.google.com/maps/search/?api=1&query={urllib.parse.quote(morning_activity.get('title', 'attraction'))}"
+                    # Changed link to google_maps_link
+                },
+                "duration": morning_activity.get("duration", 150),
+                "cost": cost,
+                "images": morning_activity.get("images", []),
+                "link": morning_activity.get("link") or morning_activity.get("booking_link"),  # Changed to prefer "link"
+                "priority": morning_activity.get("priority", 2),
+                "highlights": morning_activity.get("highlights") or ["Local attraction", "Cultural experience", "Must-see spot"]
+            },
+            "travel": {
+                "mode": "taxi",
+                "details": f"Taxi to {morning_activity.get('title', 'attraction')}",
+                "duration_minutes": 20,
+                "cost": {"currency": "₹", "range": "200-300"},  # Changed from "INR" to "₹"
+                "operator": "Local Taxi Service"
+            },
+            "warnings": [{
+                "type": "general",
+                "message": weather.get("advisory", "Check local conditions"),
+                "priority": 2
+            }]
+        })
+        current_hour += 3
+    
+    # Lunch
+    if len(restaurants) > 1:
+        lunch = restaurants[1]
+        # Format price range correctly with descriptive text
+        price_range = lunch.get("price_range", "600-900 per person")  # Changed to numeric range
+        if "per person" not in price_range and "for" not in price_range:
+            price_range = f"{price_range} per person"
+        # Convert "INR" to "₹" in price range
+        price_range = price_range.replace("INR", "₹")
+            
+        time_blocks.append({
+            "type": "fixed",
+            "start_time": f"{current_hour:02d}:00",
+            "end_time": f"{current_hour+1:02d}:30",
+            "duration_minutes": 90,
+            "activity": {
+                "title": f"Lunch at {lunch.get('name', 'Local Restaurant')}",
+                "type": "dining",
+                "description": f"Enjoy lunch at {lunch.get('name', 'a local restaurant')}",
+                "location": lunch.get("location") or {
+                    "name": lunch.get("name", "Local Restaurant"),
+                    "coordinates": {"lat": 0, "lng": 0},
+                    "google_maps_link": f"https://www.google.com/maps/search/?api=1&query={urllib.parse.quote(lunch.get('name', 'restaurant'))}"
+                    # Changed link to google_maps_link
+                },
+                "duration": 90,
+                "cost": {
+                    "currency": "₹",  # Changed from "INR" to "₹"
+                    "range": price_range
+                },
+                "images": lunch.get("images", []),
+                "link": lunch.get("link") or lunch.get("reservation_link"),  # Changed to prefer "link"
+                "priority": 2,
+                "highlights": ["Midday meal", "Local flavors", "Dining experience"]
+            },
+            "travel": {
+                "mode": "taxi",
+                "details": f"Taxi to {lunch.get('name', 'restaurant')}",
+                "duration_minutes": 20,
+                "cost": {"currency": "₹", "range": "200-300"},  # Changed from "INR" to "₹"
+                "operator": "Local Taxi Service"
+            },
+            "warnings": [{
+                "type": "crowding",
+                "message": "Restaurant may be busy during lunch hours",
+                "priority": 2
+            }]
+        })
+        current_hour += 2
+    
+    # Afternoon activity
+    if len(activities) > 1:
+        afternoon_activity = activities[1]
+        # Format cost range correctly with descriptive text
+        cost = afternoon_activity.get("cost") or {"currency": "₹", "range": "600-900 per person"}  # Changed "INR" to "₹" and made range numeric
+        if "range" in cost and "per person" not in cost["range"] and "for" not in cost["range"]:
+            cost["range"] = f"{cost['range']} per person"
+        # Convert "INR" to "₹" in cost
+        if "currency" in cost and cost["currency"] == "INR":
+            cost["currency"] = "₹"
+            
+        time_blocks.append({
+            "type": "flexible",
+            "start_time": f"{current_hour:02d}:00",
+            "end_time": f"{current_hour+2:02d}:00",
+            "duration_minutes": 120,
+            "activity": {
+                "title": afternoon_activity.get("title", "Local Attraction"),
+                "type": afternoon_activity.get("type", "sightseeing"),
+                "description": afternoon_activity.get("description", f"Visit {afternoon_activity.get('title', 'local attraction')}"),
+                "location": afternoon_activity.get("location") or {
+                    "name": afternoon_activity.get("title", "Local Attraction"),
+                    "coordinates": {"lat": 0, "lng": 0},
+                    "google_maps_link": f"https://www.google.com/maps/search/?api=1&query={urllib.parse.quote(afternoon_activity.get('title', 'attraction'))}"
+                    # Changed link to google_maps_link
+                },
+                "duration": afternoon_activity.get("duration", 120),
+                "cost": cost,
+                "images": afternoon_activity.get("images", []),
+                "link": afternoon_activity.get("link") or afternoon_activity.get("booking_link"),  # Changed to prefer "link"
+                "priority": afternoon_activity.get("priority", 2),
+                "highlights": afternoon_activity.get("highlights") or ["Popular destination", "Memorable experience", "Local culture"]
+            },
+            "travel": {
+                "mode": "taxi",
+                "details": f"Taxi to {afternoon_activity.get('title', 'attraction')}",
+                "duration_minutes": 25,
+                "cost": {"currency": "₹", "range": "250-350"},  # Changed from "INR" to "₹"
+                "operator": "Local Taxi Service"
+            },
+            "warnings": [{
+                "type": "weather",
+                "message": f"{weather.get('conditions', 'Local conditions')} may affect your experience",
+                "priority": 2
+            }]
+        })
+        current_hour += 3
+    
+    # Dinner
+    dinner_index = 2 if len(restaurants) > 2 else 0
+    dinner = restaurants[dinner_index] if restaurants else None
+    
+    if dinner:
+        # Format price range correctly with descriptive text
+        price_range = dinner.get("price_range", "800-1200 per person")  # Changed to numeric range
+        if "per person" not in price_range and "for" not in price_range:
+            price_range = f"{price_range} per person"
+        # Convert "INR" to "₹" in price range
+        price_range = price_range.replace("INR", "₹")
+            
+        time_blocks.append({
+            "type": "fixed",
+            "start_time": "19:00",
+            "end_time": "20:30",
+            "duration_minutes": 90,
+            "activity": {
+                "title": f"Dinner at {dinner.get('name', 'Local Restaurant')}",
+                "type": "dining",
+                "description": f"Enjoy dinner at {dinner.get('name', 'a local restaurant')}",
+                "location": dinner.get("location") or {
+                    "name": dinner.get("name", "Local Restaurant"),
+                    "coordinates": {"lat": 0, "lng": 0},
+                    "google_maps_link": f"https://www.google.com/maps/search/?api=1&query={urllib.parse.quote(dinner.get('name', 'restaurant'))}"
+                    # Changed link to google_maps_link
+                },
+                "duration": 90,
+                "cost": {
+                    "currency": "₹",  # Changed from "INR" to "₹"
+                    "range": price_range
+                },
+                "images": dinner.get("images", []),
+                "link": dinner.get("link") or dinner.get("reservation_link"),  # Changed to prefer "link"
+                "priority": 2,
+                "highlights": ["Evening dining", "Local cuisine", "Relaxing atmosphere"]
+            },
+            "travel": {
+                "mode": "taxi",
+                "details": f"Taxi to {dinner.get('name', 'restaurant')}",
+                "duration_minutes": 20,
+                "cost": {"currency": "₹", "range": "200-300"},  # Changed from "INR" to "₹"
+                "operator": "Local Taxi Service"
+            },
+            "warnings": [{
+                "type": "reservation",
+                "message": "Reservation recommended during peak hours",
+                "priority": 2
+            }]
+        })
+    
+    # Create the complete day structure
+    return {
+        "day_number": day_number,
+        "date": date_str,
+        "weather": weather,
+        "time_blocks": time_blocks
+    }
+
 async def generate_complete_itinerary(request: ItineraryRequest) -> Dict[str, Any]:
     """
-    Generate a complete trip itinerary using true parallel processing.
+    Generate a complete trip itinerary using pre-allocation approach for speed without redundancy.
     """
     logger.info(f"Starting itinerary generation for {request.location.destination}")
     
@@ -393,7 +705,7 @@ async def generate_complete_itinerary(request: ItineraryRequest) -> Dict[str, An
         "dining": []
     }
     
-    # Calculate trip duration for fallback weather
+    # Calculate trip duration
     start_date = datetime.strptime(request.dates.startDate, "%Y-%m-%d")
     end_date = datetime.strptime(request.dates.endDate, "%Y-%m-%d")
     duration_days = (end_date - start_date).days + 1
@@ -413,7 +725,7 @@ async def generate_complete_itinerary(request: ItineraryRequest) -> Dict[str, An
         "general_advisory": "Weather information could not be retrieved."
     }
     
-    # Run metadata generation in parallel with components (not dependent)
+    # Run metadata generation in parallel with components
     metadata_task = asyncio.create_task(generate_metadata(request))
     
     # STEP 1: Start ALL component calls in parallel
@@ -433,64 +745,270 @@ async def generate_complete_itinerary(request: ItineraryRequest) -> Dict[str, An
     metadata = await metadata_task
     logger.info("Generated metadata")
     
-    # STEP 2: Generate ALL days in parallel - no batching
-    day_tasks = []
-    for i, date_str in enumerate(date_range):
-        day_number = i + 1
-        task = generate_day_itinerary(
-            day_number, date_str, request, 
-            meta_info, transport_options, activities,
-            accommodations_and_dining, weather
-        )
-        day_tasks.append(task)
-    
-    # Start essential info generation in parallel with days  
+    # Start essential info generation in parallel
     essential_info_task = asyncio.create_task(generate_essential_info(request, meta_info))
     
-    # Wait for all day itineraries to complete
-    day_itineraries = await asyncio.gather(*day_tasks)
+    # STEP 2: PRE-ALLOCATION - Distribute venues across days to avoid redundancy
+    
+    # Create lists of available venues with their complete data intact
+    available_restaurants = []
+    for dining in accommodations_and_dining.get("dining", []):
+        if "name" in dining:
+            # Fix price_range format for restaurants
+            if "price_range" in dining:
+                price_range = dining["price_range"]
+                if isinstance(price_range, str):
+                    if "INR" in price_range:
+                        # Convert "INR X-Y" to "₹X-Y per person"
+                        price_range = price_range.replace("INR", "₹")
+                        if "per person" not in price_range and "for" not in price_range:
+                            price_range = f"{price_range} per person"
+                    elif not price_range.startswith("₹"):
+                        # Try to extract numeric range
+                        if "-" in price_range:
+                            price_range = f"₹{price_range} per person"
+                        else:
+                            price_range = f"₹600-900 per person"  # Default
+                    dining["price_range"] = price_range
+            
+            # Fix links for restaurants
+            if "reservation_link" in dining and not "link" in dining:
+                dining["link"] = dining.pop("reservation_link")
+                
+            # Fix location links
+            if "location" in dining and isinstance(dining["location"], dict):
+                if "link" in dining["location"]:
+                    dining["location"]["google_maps_link"] = dining["location"].pop("link")
+                elif not "google_maps_link" in dining["location"]:
+                    dining["location"]["google_maps_link"] = f"https://www.google.com/maps/search/?api=1&query={urllib.parse.quote(dining['name'])}"
+            
+            available_restaurants.append({
+                "name": dining["name"],
+                "data": dining,  # Keep all original data
+                "assigned_day": None
+            })
+    
+    available_activities = []
+    for category in activities:
+        if isinstance(activities[category], list):
+            for activity in activities[category]:
+                if "title" in activity:
+                    # Fix cost format for activities
+                    if "cost" in activity:
+                        cost = activity["cost"]
+                        if isinstance(cost, dict) and "currency" in cost:
+                            if cost["currency"] == "INR":
+                                cost["currency"] = "₹"
+                            if "range" in cost and isinstance(cost["range"], str):
+                                if "per person" not in cost["range"] and "for" not in cost["range"]:
+                                    cost["range"] = f"{cost['range']} per person"
+                    
+                    # Fix links for activities
+                    if "booking_link" in activity and not "link" in activity:
+                        activity["link"] = activity.pop("booking_link")
+                        
+                    # Fix location links
+                    if "location" in activity and isinstance(activity["location"], dict):
+                        if "link" in activity["location"]:
+                            activity["location"]["google_maps_link"] = activity["location"].pop("link")
+                        elif not "google_maps_link" in activity["location"]:
+                            activity["location"]["google_maps_link"] = f"https://www.google.com/maps/search/?api=1&query={urllib.parse.quote(activity['title'])}"
+                    
+                    available_activities.append({
+                        "name": activity["title"],
+                        "data": activity,  # Keep all original data
+                        "assigned_day": None,
+                        "category": category
+                    })
+    
+    # Calculate how many venues we need per day to cover all days
+    restaurants_per_day = max(2, min(3, len(available_restaurants) // duration_days))
+    activities_per_day = max(2, min(4, len(available_activities) // duration_days))
+    
+    # Assign venues to specific days - this prevents redundancy without sequential generation
+    for day_number in range(1, duration_days + 1):
+        # Get unassigned venues
+        unassigned_restaurants = [r for r in available_restaurants if r["assigned_day"] is None]
+        unassigned_activities = [a for a in available_activities if a["assigned_day"] is None]
+        
+        # Assign restaurants to this day
+        for i in range(min(restaurants_per_day, len(unassigned_restaurants))):
+            unassigned_restaurants[i]["assigned_day"] = day_number
+        
+        # Assign activities to this day
+        for i in range(min(activities_per_day, len(unassigned_activities))):
+            unassigned_activities[i]["assigned_day"] = day_number
+    
+    # Create daily venue assignments
+    day_venue_assignments = {}
+    for day_number in range(1, duration_days + 1):
+        day_venue_assignments[day_number] = {
+            "restaurants": [r["data"] for r in available_restaurants if r["assigned_day"] == day_number],
+            "activities": [a["data"] for a in available_activities if a["assigned_day"] == day_number]
+        }
+    
+    # Generate all days concurrently using the pre-allocated venues
+    day_itineraries = []
+    for i, date_str in enumerate(date_range):
+        day_number = i + 1
+        assigned_venues = day_venue_assignments.get(day_number, {"restaurants": [], "activities": []})
+        
+        # Process one day at a time
+        day_itinerary = await generate_day_with_assigned_venues(day_number, date_str, request, weather, assigned_venues)
+        day_itineraries.append(day_itinerary)
+        
+        # Add a small delay between requests to respect API limits
+        if i < len(date_range) - 1:
+            await asyncio.sleep(1)
+        
+        logger.info(f"Generated day {day_number} itinerary")
+
+    logger.info(f"Generated all {len(day_itineraries)} day itineraries sequentially")
     
     # Get essential info (should be done by now)
     essential_info = await essential_info_task
     logger.info("Generated essential information")
     
-    # First prepare the transportation data
+    # Create schema-compliant transportation data
     transportation_options = []
-    if isinstance(transport_options.get("main_transport"), list):
-        transportation_options.extend(transport_options.get("main_transport"))
-        
-    if isinstance(transport_options.get("local_transport"), list):
-        transportation_options.extend(transport_options.get("local_transport"))
     
-    # Ensure we have some transportation options
+    # Process main transport options
+    if isinstance(transport_options.get("main_transport"), list):
+        for item in transport_options.get("main_transport"):
+            if isinstance(item, dict):
+                # Format cost range correctly with descriptive text
+                cost = item.get("cost") or {"currency": "₹", "range": "1000-2000 for full trip"}  # Changed "INR" to "₹"
+                if "range" in cost and "per person" not in cost["range"] and "for" not in cost["range"]:
+                    cost["range"] = f"{cost['range']} for full trip"
+                # Convert "INR" to "₹" in cost
+                if "currency" in cost and cost["currency"] == "INR":
+                    cost["currency"] = "₹"
+                    
+                # Fix links
+                link = item.get("link") or item.get("booking_link")
+                
+                # Convert to schema-compliant format
+                transportation_options.append({
+                    "mode": item.get("mode", "car"),
+                    "details": item.get("details", "Transportation"),
+                    "duration_minutes": item.get("duration"),
+                    "cost": cost,
+                    "link": link,  # Use consistent link field
+                    "operator": item.get("operator", "Local Operator")  # Ensure operator is present
+                })
+    
+    # Process local transport options
+    if isinstance(transport_options.get("local_transport"), list):
+        for item in transport_options.get("local_transport"):
+            if isinstance(item, dict):
+                # Format cost range correctly with descriptive text
+                cost = item.get("cost") or {"currency": "₹", "range": "200-400 per trip"}  # Changed "INR" to "₹"
+                if "range" in cost and "per person" not in cost["range"] and "for" not in cost["range"]:
+                    cost["range"] = f"{cost['range']} per trip"
+                # Convert "INR" to "₹" in cost
+                if "currency" in cost and cost["currency"] == "INR":
+                    cost["currency"] = "₹"
+                    
+                # Convert to schema-compliant format
+                transportation_options.append({
+                    "mode": item.get("mode", "local"),
+                    "details": item.get("details", "Local transportation"),
+                    "duration_minutes": item.get("duration"),
+                    "cost": cost,
+                    "link": item.get("link"),
+                    "operator": item.get("operator", "Local Transit Provider")  # Ensure operator is present
+                })
+    
+    # Ensure we have at least one transportation option
     if not transportation_options:
         transportation_options = [{
             "mode": "car",
             "details": f"Transportation in {request.location.destination}",
-            "duration": 60,
+            "duration_minutes": 60,
             "cost": {
-                "currency": request.budget.currency if request.budget else "USD",
-                "range": "Varies based on distance"
+                "currency": "₹",  # Changed from "INR" to "₹"
+                "range": "600-1200 for full day"
             },
             "link": None,
             "operator": "Local operators"
         }]
     
-    # Assemble the final itinerary
+    # Fix accommodations data
+    accommodations = []
+    for accommodation in accommodations_and_dining.get("accommodations", []):
+        # Fix price_range format
+        if "price_range" in accommodation:
+            price_range = accommodation["price_range"]
+            if isinstance(price_range, str):
+                if "INR" in price_range:
+                    # Convert "INR X-Y" to "₹X-Y per night"
+                    price_range = price_range.replace("INR", "₹")
+                    if "per night" not in price_range:
+                        price_range = f"{price_range} per night"
+                elif not price_range.startswith("₹"):
+                    # Try to extract numeric range
+                    if "-" in price_range:
+                        price_range = f"₹{price_range} per night"
+                    else:
+                        price_range = f"₹6000-9000 per night"  # Default
+            accommodation["price_range"] = price_range
+        
+        # Fix links for accommodations
+        if "booking_link" in accommodation and not "link" in accommodation:
+            accommodation["link"] = accommodation.pop("booking_link")
+            
+        # Fix location links
+        if "location" in accommodation and isinstance(accommodation["location"], dict):
+            if "link" in accommodation["location"]:
+                accommodation["location"]["google_maps_link"] = accommodation["location"].pop("link")
+            elif not "google_maps_link" in accommodation["location"]:
+                accommodation["location"]["google_maps_link"] = f"https://www.google.com/maps/search/?api=1&query={urllib.parse.quote(accommodation['name'])}"
+        
+        accommodations.append(accommodation)
+    
+    # Fix dining data
+    dining_options = []
+    for dining in accommodations_and_dining.get("dining", []):
+        # Fix price_range format
+        if "price_range" in dining:
+            price_range = dining["price_range"]
+            if isinstance(price_range, str):
+                if "INR" in price_range:
+                    # Convert "INR X-Y" to "₹X-Y for two"
+                    price_range = price_range.replace("INR", "₹")
+                    if "for two" not in price_range:
+                        price_range = f"{price_range} for two"
+                elif not price_range.startswith("₹"):
+                    # Try to extract numeric range
+                    if "-" in price_range:
+                        price_range = f"₹{price_range} for two"
+                    else:
+                        price_range = f"₹1500-2500 for two"  # Default
+            dining["price_range"] = price_range
+        
+        # Fix links for dining
+        if "reservation_link" in dining and not "link" in dining:
+            dining["link"] = dining.pop("reservation_link")
+            
+        dining_options.append(dining)
+    
+    # Generate a descriptive name for the itinerary
+    itinerary_name = f"{request.location.destination} {'-'.join(request.tripStyle)} Adventure ({request.dates.startDate} to {request.dates.endDate})"
+    logger.info(f"Created itinerary name: {itinerary_name}")
+    
+    # Assemble the final itinerary with proper schema and field order
     complete_itinerary = {
+        "name": itinerary_name,
         "metadata": metadata,
         "itinerary": day_itineraries,
         "recommendations": {
-            "accommodations": accommodations_and_dining.get("accommodations", []),
-            "dining": accommodations_and_dining.get("dining", []),
+            "accommodations": accommodations,
+            "dining": dining_options,
             "transportation": transportation_options
         },
         "essential_info": essential_info,
         "journey_path": meta_info.get("journey_path", {})
     }
-    
-    # Apply schema conformance rules
-    complete_itinerary = conform_to_schema(complete_itinerary, request.additionalContext)
     
     logger.info(f"Successfully generated complete itinerary with {len(day_itineraries)} days")
     return complete_itinerary

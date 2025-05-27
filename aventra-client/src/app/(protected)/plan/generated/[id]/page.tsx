@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import TripItineraryDisplay from "@/components/itinerary/trip-itinerary-display";
 import { useUserStore } from "@/stores/userStore";
 import { useItineraryStore } from "@/stores/useItineraryStore";
-import { ApiResponse } from "@/types/itinerary";
+import { GeneratedItineraryResponse } from "@/types/itinerary";
 import Layout from "@/components/layout/Layout";
 
 /**
@@ -22,7 +22,7 @@ export default function TripPage() {
   
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [itinerary, setItinerary] = useState<ApiResponse | null>(null);
+  const [itinerary, setItinerary] = useState<GeneratedItineraryResponse | null>(null);
   
   // Current context information for the trip
   const currentUserLogin = user?.name || user?.email?.split('@')[0] || "Guest";

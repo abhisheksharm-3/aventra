@@ -22,6 +22,8 @@ export interface Destination {
   tagline: string;
   match: number;
   image: string;
+  imageQuery?: string; // Optional query for fetching images
+  isLoading?: boolean;
 }
 
 /**

@@ -7,7 +7,12 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { ApiResponse } from '@/types/itinerary';
+import { GeneratedItineraryResponse } from '@/types/itinerary';
+import { saveItinerary, getItinerary as fetchItineraryById } from '@/controllers/ItineraryController';
+
+// Current defaults for new itineraries
+const CURRENT_DATETIME = "2025-05-15 14:36:36"; // Updated timestamp
+const CURRENT_USER = "abhisheksharm-3"; // Current user
 
 /**
  * Extended store state for managing multiple itineraries
@@ -15,20 +20,30 @@ import { ApiResponse } from '@/types/itinerary';
  */
 export interface ExtendedItineraryState {
   /** Map of itineraries indexed by their IDs */
-  itineraries: Record<string, ApiResponse>;
+  itineraries: Record<string, GeneratedItineraryResponse>;
   /** Currently active/selected itinerary ID */
   activeItineraryId: string | null;
   /** Status of API requests for itineraries */
   loading: Record<string, boolean>;
+  /** Cloud synchronization status */
+  cloudSaving: Record<string, boolean>;
   /** Currently selected itinerary data (single itinerary mode) */
-  itineraryData: ApiResponse | null;
+  itineraryData: GeneratedItineraryResponse | null;
 
   /**
-   * Set the data for a specific itinerary by ID
-   * @param {ApiResponse} data - The itinerary data to store
+   * Set the data for a specific itinerary by ID and sync to cloud
+   * @param {GeneratedItineraryResponse} data - The itinerary data to store
    * @param {string} [id] - Optional ID (uses data.id if not provided)
+   * @param {boolean} [skipCloudSync] - Whether to skip cloud synchronization
    */
-  setItineraryData: (data: ApiResponse, id?: string) => void;
+  setItineraryData: (data: GeneratedItineraryResponse, id?: string, skipCloudSync?: boolean) => void;
+
+  /**
+   * Save an itinerary to the cloud
+   * @param {string} id - The ID of the itinerary to save to cloud
+   * @returns {Promise<boolean>} Whether the save was successful
+   */
+  saveItineraryToCloud: (id: string) => Promise<boolean>;
 
   /**
    * Set the currently active itinerary
@@ -37,10 +52,12 @@ export interface ExtendedItineraryState {
   setActiveItinerary: (id: string) => void;
 
   /**
-   * Remove a specific itinerary from the store
+   * Remove a specific itinerary from the store and cloud if needed
    * @param {string} id - The ID of the itinerary to remove
+   * @param {boolean} [removeFromCloud] - Whether to also delete from cloud
+   * @returns {Promise<boolean>} Whether the removal was successful
    */
-  removeItinerary: (id: string) => void;
+  removeItinerary: (id: string, removeFromCloud?: boolean) => Promise<boolean>;
 
   /**
    * Clear all itineraries from the store
@@ -50,16 +67,16 @@ export interface ExtendedItineraryState {
   /**
    * Get an itinerary by ID, fetching from cloud if not in store
    * @param {string} id - The ID of the itinerary to retrieve
-   * @returns {Promise<ApiResponse | null>} The requested itinerary or null
+   * @returns {Promise<GeneratedItineraryResponse | null>} The requested itinerary or null
    */
-  getItinerary: (id: string) => Promise<ApiResponse | null>;
+  getItinerary: (id: string) => Promise<GeneratedItineraryResponse | null>;
 
   /**
    * Fetch an itinerary from the cloud by ID
    * @param {string} id - The ID of the itinerary to fetch
-   * @returns {Promise<ApiResponse>} The fetched itinerary
+   * @returns {Promise<GeneratedItineraryResponse>} The fetched itinerary
    */
-  fetchItineraryFromCloud: (id: string) => Promise<ApiResponse>;
+  fetchItineraryFromCloud: (id: string) => Promise<GeneratedItineraryResponse>;
 }
 
 /**
@@ -79,13 +96,14 @@ export const useItineraryStore = create<ExtendedItineraryState>()(
       itineraries: {},
       activeItineraryId: null,
       loading: {},
+      cloudSaving: {},
       itineraryData: null,
 
       /**
        * Set the data for a specific itinerary
        * Also updates the single-itinerary view for backward compatibility
        */
-      setItineraryData: (data: ApiResponse, id?: string) => {
+      setItineraryData: (data: GeneratedItineraryResponse, id?: string, skipCloudSync = false) => {
         const itineraryId = id || data.id;
         
         if (!itineraryId) {
@@ -96,8 +114,8 @@ export const useItineraryStore = create<ExtendedItineraryState>()(
         // Include current timestamp and user if not present
         const enrichedData = {
           ...data,
-          currentDateTime: data.currentDateTime || new Date().toISOString(),
-          currentUser: data.currentUser || "unknown"
+          currentDateTime: data.currentDateTime || CURRENT_DATETIME,
+          currentUser: data.currentUser || CURRENT_USER
         };
         
         set((state) => {
@@ -111,6 +129,93 @@ export const useItineraryStore = create<ExtendedItineraryState>()(
           };
           return newState;
         });
+
+        // Sync to cloud if needed (after local save is complete)
+        if (!skipCloudSync) {
+          // Use setTimeout to ensure this runs after the state update is committed
+          setTimeout(() => {
+            get().saveItineraryToCloud(itineraryId);
+          }, 0);
+        }
+      },
+
+      /**
+       * Save an itinerary to the cloud
+       */
+      saveItineraryToCloud: async (id: string) => {
+        const { itineraries, cloudSaving } = get();
+        const itinerary = itineraries[id];
+        
+        if (!itinerary) {
+          console.error(`Cannot save itinerary ${id} to cloud: not found in store`);
+          return false;
+        }
+        
+        // Prevent duplicate saves
+        if (cloudSaving[id]) {
+          console.log(`Itinerary ${id} is already being saved to the cloud`);
+          return false;
+        }
+        
+        // Mark as saving
+        set((state) => ({
+          cloudSaving: { ...state.cloudSaving, [id]: true }
+        }));
+        
+        try {
+          // Call the server action to save to Appwrite
+          const result = await saveItinerary(itinerary);
+          
+          // Update cloud saving state
+          set((state) => ({
+            cloudSaving: { ...state.cloudSaving, [id]: false }
+          }));
+          
+          if (!result.success) {
+            console.error(`Failed to save itinerary ${id} to cloud:`, result.error);
+            return false;
+          }
+          
+          // If server generated a new ID, update our local reference
+          if (result.tripId && result.tripId !== id) {
+            console.log(`Server assigned new ID ${result.tripId} to itinerary ${id}`);
+            
+            // Fix: Create properly typed updated itinerary
+            const updatedItinerary: GeneratedItineraryResponse = {
+              ...itinerary,
+              id: result.tripId
+            };
+            
+            // Ensure tripId is a string to be used as an object key
+            const newId = result.tripId as string;
+            
+            set((state) => {
+              // eslint-disable-next-line @typescript-eslint/no-unused-vars
+              const { [id]: oldItinerary, ...restItineraries } = state.itineraries;
+              
+              // Fixed return type to match ExtendedItineraryState's partial structure
+              return {
+                itineraries: {
+                  ...restItineraries,
+                  [newId]: updatedItinerary
+                },
+                activeItineraryId: state.activeItineraryId === id ? newId : state.activeItineraryId,
+                itineraryData: state.itineraryData?.id === id ? updatedItinerary : state.itineraryData
+              };
+            });
+          }
+          
+          return true;
+        } catch (error) {
+          console.error(`Error saving itinerary ${id} to cloud:`, error);
+          
+          // Reset cloud saving state
+          set((state) => ({
+            cloudSaving: { ...state.cloudSaving, [id]: false }
+          }));
+          
+          return false;
+        }
       },
 
       /**
@@ -134,7 +239,31 @@ export const useItineraryStore = create<ExtendedItineraryState>()(
       /**
        * Remove a specific itinerary from the store
        */
-      removeItinerary: (id: string) => {
+      removeItinerary: async (id: string, removeFromCloud = false) => {
+        const { itineraries } = get();
+        
+        // Check if itinerary exists
+        if (!itineraries[id]) {
+          console.warn(`Attempted to remove non-existent itinerary ${id}`);
+          return false;
+        }
+        
+        // Delete from cloud if requested
+        if (removeFromCloud) {
+          try {
+            // TODO: Implement cloud deletion API call
+            // const result = await deleteItinerary(id);
+            // if (!result.success) {
+            //   console.error(`Failed to delete itinerary ${id} from cloud:`, result.error);
+            //   return false;
+            // }
+          } catch (error) {
+            console.error(`Error deleting itinerary ${id} from cloud:`, error);
+            return false;
+          }
+        }
+        
+        // Remove from local store
         set((state) => {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const { [id]: removedItinerary, ...remainingItineraries } = state.itineraries;
@@ -153,6 +282,8 @@ export const useItineraryStore = create<ExtendedItineraryState>()(
             itineraryData: newItineraryData
           };
         });
+        
+        return true;
       },
 
       /**
@@ -214,18 +345,18 @@ export const useItineraryStore = create<ExtendedItineraryState>()(
       },
 
       /**
-       * Fetch an itinerary from the cloud by ID
-       * Implementation placeholder - replace with actual API call
+       * Fetch an itinerary from the cloud by ID using the server action
        */
       fetchItineraryFromCloud: async (id: string) => {
         try {
-          const response = await fetch(`/api/itineraries/${id}`);
+          // Call the server action to fetch from Appwrite
+          const result = await fetchItineraryById(id);
           
-          if (!response.ok) {
-            throw new Error(`Failed to fetch itinerary ${id}: ${response.statusText}`);
+          if (!result.success || !result.itinerary) {
+            throw new Error(`Failed to fetch itinerary ${id}: ${result.error || 'Unknown error'}`);
           }
           
-          return await response.json() as ApiResponse;
+          return result.itinerary;
         } catch (error) {
           console.error(`Cloud fetch error for itinerary ${id}:`, error);
           throw error;
@@ -245,7 +376,7 @@ export const useItineraryStore = create<ExtendedItineraryState>()(
 
 /**
  * Hook to get the currently active itinerary
- * @returns {ApiResponse | null} The currently active itinerary or null if none is active
+ * @returns {GeneratedItineraryResponse | null} The currently active itinerary or null if none is active
  */
 export const useActiveItinerary = () => {
   return useItineraryStore((state) => {
@@ -256,7 +387,7 @@ export const useActiveItinerary = () => {
 
 /**
  * Hook to get a list of all stored itineraries
- * @returns {{ id: string, data: ApiResponse }[]} Array of itinerary objects with their IDs
+ * @returns {{ id: string, data: GeneratedItineraryResponse }[]} Array of itinerary objects with their IDs
  */
 export const useAllItineraries = () => {
   return useItineraryStore((state) => {
@@ -269,9 +400,9 @@ export const useAllItineraries = () => {
  * Hook to get the current date/time and user information for new itineraries
  * @returns {{ currentDateTime: string, currentUser: string }} Current timestamp and user info
  */
-export const useItineraryContext = () => {
+export const useCurrentContext = () => {
   return {
-    currentDateTime: "2025-05-14 15:44:57", // Using the provided timestamp
-    currentUser: "abhisheksharm-3" // Using the provided user
+    currentDateTime: CURRENT_DATETIME,
+    currentUser: CURRENT_USER
   };
 };
