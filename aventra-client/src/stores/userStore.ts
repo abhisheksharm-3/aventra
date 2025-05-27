@@ -49,8 +49,6 @@ interface UserState {
   clearLastActionResult: () => void;
   
   // Helper methods
-  hasRole: (role: string) => boolean;
-  isAdmin: () => boolean;
   getPreference: <T>(key: keyof UserPreferences, defaultValue?: T) => T | undefined;
   
   // Authentication actions
@@ -311,17 +309,6 @@ export const useUserStore = create<UserState>()(
       
       clearLastActionResult: () => {
         set({ lastActionResult: null });
-      },
-      
-      hasRole: (role: string) => {
-        const { user } = get();
-        if (!user || !user.prefs) return false;
-        const prefs = user.prefs as UserPreferences;
-        return prefs.role === role;
-      },
-      
-      isAdmin: () => {
-        return get().hasRole('admin');
       },
       
       getPreference: <T>(key: keyof UserPreferences, defaultValue?: T): T | undefined => {

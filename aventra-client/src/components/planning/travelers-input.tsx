@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useFormContext } from "react-hook-form";
 import { 
   Users, ChevronDown, Baby, User, 
@@ -24,14 +24,22 @@ export function TravelersInput() {
   const { setValue, watch } = useFormContext<TripFormValues>();
   const [open, setOpen] = useState(false);
   
+  // Watch traveler values
   const adults = watch("travelers.adults") || 1;
   const children = watch("travelers.children") || 0;
   const infants = watch("travelers.infants") || 0;
+  
+  // Calculate total count directly from watched values
   const totalTravelers = adults + children + infants;
   
-  const updateTotalCount = () => {
-    setValue("travelers.count", adults + children + infants);
-  };
+  // Sync the total count whenever individual counts change
+  useEffect(() => {
+    // Only update if the current stored count doesn't match calculated total
+    const currentCount = watch("travelers.count");
+    if (currentCount !== totalTravelers) {
+      setValue("travelers.count", totalTravelers, { shouldValidate: true });
+    }
+  }, [adults, children, infants, setValue, watch, totalTravelers]);
   
   // Handle updating traveler counts with min/max limits
   const updateCount = (type: 'adults' | 'children' | 'infants', increment: boolean) => {
@@ -40,15 +48,24 @@ export function TravelersInput() {
     // Determine the new value
     let newValue: number;
     if (increment) {
-      // Maximum 10 travelers of each type
-      newValue = Math.min(10, current + 1);
+      // Maximum 10 travelers of each type (4 for infants)
+      const max = type === 'infants' ? 4 : 10;
+      newValue = Math.min(max, current + 1);
     } else {
       // Minimum 1 adult, 0 for others
       newValue = Math.max(type === 'adults' ? 1 : 0, current - 1);
     }
     
-    setValue(`travelers.${type}`, newValue);
-    updateTotalCount();
+    // Update individual count
+    setValue(`travelers.${type}`, newValue, { shouldValidate: true });
+    
+    // Directly calculate and update the total - don't rely on updateTotalCount()
+    const newAdults = type === 'adults' ? newValue : adults;
+    const newChildren = type === 'children' ? newValue : children;
+    const newInfants = type === 'infants' ? newValue : infants;
+    const newTotal = newAdults + newChildren + newInfants;
+    
+    setValue("travelers.count", newTotal, { shouldValidate: true });
   };
   
   return (

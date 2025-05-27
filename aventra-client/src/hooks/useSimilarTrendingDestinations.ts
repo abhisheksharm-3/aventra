@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTripFormStore } from '../stores/useTripFormStore';
 import { TrendingDestination } from '@/types/ai';
-import { getTrendingDestinations } from '@/lib/services/gemini/trending-service';
+import { getTrendingDestinations } from '@/lib/services/gemini/similar-trending-service';
 
 /**
  * React hook that provides AI-matched trending destinations based on
