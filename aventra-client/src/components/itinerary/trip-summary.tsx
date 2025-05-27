@@ -4,15 +4,10 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
-import { Button } from "@/components/ui/button";
 import {
   Compass,
   Calendar,
   DollarSign,
-  PencilLine,
-  Printer,
-  Copy,
-  Check,
   CalendarClock,
   User
 } from "lucide-react";
@@ -21,16 +16,12 @@ interface TripSummaryProps {
   metadata: TripMetadata;
   currentUser: string;
   currentDateTime: string;
-  onCopyTripId: () => void;
-  isCopied: boolean;
 }
 
 const TripSummary: React.FC<TripSummaryProps> = ({
   metadata,
   currentUser,
   currentDateTime,
-  onCopyTripId,
-  isCopied
 }) => {
   return (
     <>
@@ -160,38 +151,6 @@ const TripSummary: React.FC<TripSummaryProps> = ({
           </div>
         </div>
       </Card>
-
-      {/* Quick Action Buttons */}
-      <div className="flex flex-wrap gap-2">
-        <Button variant="outline" size="sm" className="gap-1.5">
-          <PencilLine className="h-3.5 w-3.5" />
-          <span>Edit Trip</span>
-        </Button>
-        
-        <Button variant="outline" size="sm" className="gap-1.5">
-          <Printer className="h-3.5 w-3.5" />
-          <span>Print</span>
-        </Button>
-        
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="gap-1.5"
-          onClick={onCopyTripId}
-        >
-          {isCopied ? (
-            <>
-              <Check className="h-3.5 w-3.5 text-green-500" />
-              <span className="text-green-500">Copied!</span>
-            </>
-          ) : (
-            <>
-              <Copy className="h-3.5 w-3.5" />
-              <span>Copy Trip ID</span>
-            </>
-          )}
-        </Button>
-      </div>
     </>
   );
 };

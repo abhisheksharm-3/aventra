@@ -27,14 +27,7 @@ export default function TripItineraryDisplay({
   currentUser = "abhisheksharm-3" 
 }: TripItineraryProps) {
   const [activeDay, setActiveDay] = useState(1);
-  const [isCopied, setIsCopied] = useState(false);
 
-  const handleCopyTripId = () => {
-    const tripId = "TRIP-" + Math.random().toString(36).substring(2, 8).toUpperCase();
-    navigator.clipboard.writeText(tripId);
-    setIsCopied(true);
-    setTimeout(() => setIsCopied(false), 2000);
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -126,8 +119,7 @@ export default function TripItineraryDisplay({
                   metadata={tripData.metadata} 
                   currentUser={currentUser}
                   currentDateTime={currentDateTime}
-                  onCopyTripId={handleCopyTripId}
-                  isCopied={isCopied}
+
                 />
               </TabsContent>
 

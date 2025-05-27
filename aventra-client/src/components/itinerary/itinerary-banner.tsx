@@ -1,9 +1,8 @@
 import React from "react";
 import Image from "next/image";
 import { format, parseISO } from "date-fns";
-import { Calendar, Download, Share2 } from "lucide-react";
+import { Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 
 interface ItineraryBannerProps {
   tripName: string;
@@ -51,21 +50,6 @@ const ItineraryBanner: React.FC<ItineraryBannerProps> = ({
                   </span>
                 </div>
               </div>
-            </div>
-            
-            <div className="flex gap-2">
-              <Button size="sm" variant="secondary" className="gap-1 text-xs md:text-sm h-9">
-                <Download className="h-3.5 w-3.5" />
-                <span>Download</span>
-              </Button>
-              
-              <Button 
-                size="sm" 
-                className="gap-1 text-xs md:text-sm h-9"
-              >
-                <Share2 className="h-3.5 w-3.5" />
-                <span>Share Trip</span>
-              </Button>
             </div>
           </div>
         </div>
