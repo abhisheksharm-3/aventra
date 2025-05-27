@@ -142,7 +142,7 @@ async def generate_essential_info(request: ItineraryRequest, destination_info: D
       ]
     }}
     
-    IMPORTANT: Include at least 3 emergency contacts including local emergency numbers.
+    IMPORTANT: Include at least 3 emergency contacts including public emergency numbers and don't include any assumed, pseudo or hypothetical numbers.
     """
     
     try:
