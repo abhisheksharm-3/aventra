@@ -12,7 +12,7 @@ from app.services.gemini_service import get_gemini_structured_response
 logger = logging.getLogger(__name__)
 
 # Configure the hotel scraper API endpoint
-HOTEL_SCRAPER_API_URL = os.environ.get("HOTEL_SCRAPER_API_URL", "http://localhost:7860/api/hotels")
+HOTEL_SCRAPER_API_URL = os.environ.get("HOTEL_SCRAPER_API_URL", " http://127.0.0.1:7860/api/hotels")
 API_ACCESS_TOKEN = os.environ.get("API_ACCESS_TOKEN")
 
 async def get_accommodations(request: ItineraryRequest) -> Dict[str, Any]:
