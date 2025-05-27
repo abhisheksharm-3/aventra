@@ -525,8 +525,8 @@ function assembleItinerary(
   return {
     isSuccess: true,
     id: itinerary.trip_id,
+    name: itinerary.name,
     metadata: {
-      name: itinerary.name,
       trip_type: itinerary.trip_type,
       duration_days: itinerary.duration_days,
       total_budget: {
