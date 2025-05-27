@@ -835,6 +835,9 @@ async def generate_complete_itinerary(request: ItineraryRequest) -> Dict[str, An
         # Add initial transport to first day
         # Replace the if condition with this
         if day_number == 1:
+            src_coords_task = asyncio.create_task(get_coordinates_from_gemini(request.location.baseCity))
+            dst_coords_task = asyncio.create_task(get_coordinates_from_gemini(request.location.destination))
+
             # Get main transport if available, otherwise create a placeholder
             main_transport = {}
             if isinstance(transport_options.get("main_transport"), list) and transport_options.get("main_transport"):
@@ -842,38 +845,139 @@ async def generate_complete_itinerary(request: ItineraryRequest) -> Dict[str, An
             
             logger.info("Adding initial transport to day 1")
             
-            # Create a time block for the initial journey - simplified and hardcoded
+            # Determine realistic duration based on location context
+            duration_mins = main_transport.get("duration", 120)  # Default 2 hours if not specified
+            
+            # Make duration more realistic based on destination type
+            destination_lower = request.location.destination.lower()
+            base_city_lower = request.location.baseCity.lower()
+            
+            # Check for mountain/remote locations
+            is_mountain = any(term in destination_lower for term in ["mountain", "himalayas", "alps", "spiti", "ladakh", "kaza", "manali", "shimla", "uttarakhand", "kashmir"])
+            is_remote = any(term in destination_lower for term in ["remote", "village", "island", "jungle", "forest", "national park"])
+            
+            # If no explicit duration and mountain/remote location, set realistic duration
+            if not main_transport.get("duration") and (is_mountain or is_remote):
+                if is_mountain:
+                    duration_mins = 480  # 8 hours for mountain travel
+                elif is_remote:
+                    duration_mins = 300  # 5 hours for remote locations
+            
+            # Format travel mode and times properly
+            travel_mode = main_transport.get("mode", "transport").lower()
+            
+            # Default start time (early morning)
+            departure_time = main_transport.get("departure_time", "06:00")
+            if not isinstance(departure_time, str) or len(departure_time) < 5:
+                departure_time = "06:00"
+                
+            # Calculate arrival time based on duration
+            try:
+                departure_dt = datetime.strptime(departure_time[:5], "%H:%M")
+                arrival_dt = departure_dt + timedelta(minutes=duration_mins)
+                arrival_time = arrival_dt.strftime("%H:%M")
+            except:
+                # Fallback if datetime parsing fails
+                departure_time = "06:00"
+                if duration_mins <= 120:
+                    arrival_time = "08:00"
+                elif duration_mins <= 300:
+                    arrival_time = "11:00"
+                else:
+                    arrival_time = "14:00"
+            
+            # Get cost information from transport data or provide realistic fallback
+            cost = main_transport.get("cost", {})
+            if not isinstance(cost, dict):
+                cost = {}
+                
+            cost_currency = cost.get("currency", request.budget.currency)
+            
+            # Set cost range based on mode and duration
+            cost_range = cost.get("range", "")
+            if not cost_range:
+                if "flight" in travel_mode:
+                    cost_range = "3000-8000 per person"
+                elif "train" in travel_mode:
+                    cost_range = "800-2000 per person"
+                elif "bus" in travel_mode:
+                    cost_range = "500-1500 per person"
+                else:
+                    cost_range = "1000-3000 per person"
+            
+            # Choose appropriate description based on mode
+            mode_display = "Transport"
+            if "flight" in travel_mode:
+                mode_display = "Flight"
+            elif "train" in travel_mode:
+                mode_display = "Train"
+            elif "bus" in travel_mode:
+                mode_display = "Bus"
+            elif "car" in travel_mode or "taxi" in travel_mode:
+                mode_display = "Car"
+            
+            # Create description with transport details
+            description = main_transport.get("details", "")
+            if not description:
+                description = f"{mode_display} journey from {request.location.baseCity} to {request.location.destination}"
+                if is_mountain:
+                    description += ". This scenic mountain route offers beautiful views but takes longer due to winding roads and elevation changes."
+                elif is_remote:
+                    description += ". This journey to a remote location may involve multiple stops or transfers."
+            
+            # Create warning message based on mode
+            warning_message = "Allow extra time for check-in and security procedures."
+            if "flight" in travel_mode:
+                warning_message = "Arrive at the airport at least 2 hours before departure for check-in and security."
+            elif "train" in travel_mode:
+                warning_message = "Arrive at the station 30 minutes before departure to find your platform."
+            elif is_mountain:
+                warning_message = "Mountain roads can be challenging. Take motion sickness medication if needed and expect occasional delays."
+            
+            # Create transport highlights
+            highlights = ["Initial journey", "Start of adventure"]
+            if is_mountain:
+                highlights.append("Scenic mountain views")
+            if "flight" in travel_mode:
+                highlights.append("Aerial perspectives")
+            elif "train" in travel_mode:
+                highlights.append("Comfortable rail journey")
+            
+            src_coords = await src_coords_task
+            dst_coords = await dst_coords_task
+            
+            # Create the time block with realistic values
             transport_time_block = {
                 "type": "fixed",
-                "start_time": "06:00",
-                "end_time": "07:30",
-                "duration_minutes": 90,
+                "start_time": departure_time[:5],
+                "end_time": arrival_time,
+                "duration_minutes": duration_mins,
                 "activity": {
-                    "title": f"Travel from {request.location.baseCity} to {request.location.destination}",
+                    "title": f"{mode_display} from {request.location.baseCity} to {request.location.destination}",
                     "type": "transport",
-                    "description": f"Journey from {request.location.baseCity} to {request.location.destination}",
+                    "description": description,
                     "location": {
                         "name": f"From {request.location.baseCity}",
-                        "coordinates": {"lat": 0, "lng": 0},
+                        "coordinates": src_coords,
                         "google_maps_link": f"https://www.google.com/maps/dir/{urllib.parse.quote(request.location.baseCity)}/{urllib.parse.quote(request.location.destination)}"
                     },
-                    "duration": 90,
-                    "cost": {"currency": request.budget.currency, "range": "1000-2000 per person"},
+                    "duration": duration_mins,
+                    "cost": {"currency": cost_currency, "range": cost_range},
                     "images": [],
-                    "link": None,
+                    "link": main_transport.get("booking_link"),
                     "priority": 1,
-                    "highlights": ["Initial journey", "Start of adventure"]
+                    "highlights": highlights
                 },
                 "travel": {
-                    "mode": main_transport.get("mode", "transport"),
-                    "details": f"Travel to {request.location.destination}",
-                    "duration_minutes": 90,
-                    "cost": {"currency": request.budget.currency, "range": "1000-2000 per person"},
-                    "operator": "Transport provider"
+                    "mode": travel_mode,
+                    "details": description,
+                    "duration_minutes": duration_mins,
+                    "cost": {"currency": cost_currency, "range": cost_range},
+                    "operator": main_transport.get("operator", f"Local {mode_display} Service")
                 },
                 "warnings": [{
                     "type": "general",
-                    "message": "Allow extra time for check-in and security procedures.",
+                    "message": warning_message,
                     "priority": 1
                 }]
             }
@@ -1048,3 +1152,35 @@ async def generate_complete_itinerary(request: ItineraryRequest) -> Dict[str, An
     
     logger.info(f"Successfully generated complete itinerary with {len(day_itineraries)} days")
     return complete_itinerary
+
+async def get_coordinates_from_gemini(location_name: str) -> dict:
+    """Get coordinates for a location using Gemini."""
+    prompt = f"""
+    Provide the latitude and longitude coordinates for {location_name}.
+    Return only a JSON object with this exact format:
+    {{
+      "lat": 00.0000,
+      "lng": 00.0000
+    }}
+    
+    Be precise and use accurate coordinates.
+    """
+    
+    system_instruction = "You are a geography expert. Provide accurate coordinates in decimal format."
+    
+    try:
+        coordinates = await get_gemini_structured_response(prompt, system_instruction)
+        # Validate coordinates
+        if (isinstance(coordinates, dict) and 
+            "lat" in coordinates and 
+            "lng" in coordinates and
+            isinstance(coordinates["lat"], (int, float)) and
+            isinstance(coordinates["lng"], (int, float))):
+            return coordinates
+        else:
+            # Fallback to center of India if invalid response
+            logger.warning(f"Invalid coordinates response for {location_name}: {coordinates}")
+            return {'lat': 20.5937, 'lng': 78.9629}
+    except Exception as e:
+        logger.error(f"Error getting coordinates for {location_name}: {str(e)}")
+        return {'lat': 20.5937, 'lng': 78.9629}
