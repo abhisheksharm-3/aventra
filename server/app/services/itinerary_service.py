@@ -9,7 +9,7 @@ from urllib.parse import quote
 import urllib
 from app.models.request import ItineraryRequest
 from app.models.response import ItineraryResponse
-from app.services.gemini_service import get_gemini_structured_response
+from app.services.gemini_service import get_gemini_response, get_gemini_structured_response
 from app.services.meta_service import get_meta_info
 from app.services.transport_service import get_transport_options
 from app.services.activities_service import get_activities
@@ -831,6 +831,56 @@ async def generate_complete_itinerary(request: ItineraryRequest) -> Dict[str, An
         
         # Process one day at a time
         day_itinerary = await generate_day_with_assigned_venues(day_number, date_str, request, weather, assigned_venues)
+        
+        # Add initial transport to first day
+        # Replace the if condition with this
+        if day_number == 1:
+            # Get main transport if available, otherwise create a placeholder
+            main_transport = {}
+            if isinstance(transport_options.get("main_transport"), list) and transport_options.get("main_transport"):
+                main_transport = transport_options["main_transport"][0]
+            
+            logger.info("Adding initial transport to day 1")
+            
+            # Create a time block for the initial journey - simplified and hardcoded
+            transport_time_block = {
+                "type": "fixed",
+                "start_time": "06:00",
+                "end_time": "07:30",
+                "duration_minutes": 90,
+                "activity": {
+                    "title": f"Travel from {request.location.baseCity} to {request.location.destination}",
+                    "type": "transport",
+                    "description": f"Journey from {request.location.baseCity} to {request.location.destination}",
+                    "location": {
+                        "name": f"From {request.location.baseCity}",
+                        "coordinates": {"lat": 0, "lng": 0},
+                        "google_maps_link": f"https://www.google.com/maps/dir/{urllib.parse.quote(request.location.baseCity)}/{urllib.parse.quote(request.location.destination)}"
+                    },
+                    "duration": 90,
+                    "cost": {"currency": request.budget.currency, "range": "1000-2000 per person"},
+                    "images": [],
+                    "link": None,
+                    "priority": 1,
+                    "highlights": ["Initial journey", "Start of adventure"]
+                },
+                "travel": {
+                    "mode": main_transport.get("mode", "transport"),
+                    "details": f"Travel to {request.location.destination}",
+                    "duration_minutes": 90,
+                    "cost": {"currency": request.budget.currency, "range": "1000-2000 per person"},
+                    "operator": "Transport provider"
+                },
+                "warnings": [{
+                    "type": "general",
+                    "message": "Allow extra time for check-in and security procedures.",
+                    "priority": 1
+                }]
+            }
+            
+            # Insert at the beginning of the day's time blocks
+            day_itinerary["time_blocks"].insert(0, transport_time_block)
+        
         day_itineraries.append(day_itinerary)
         
         # Add a small delay between requests to respect API limits
@@ -952,8 +1002,34 @@ async def generate_complete_itinerary(request: ItineraryRequest) -> Dict[str, An
             
         dining_options.append(dining)
     
-    # Generate a descriptive name for the itinerary
-    itinerary_name = f"{request.location.destination} {'-'.join(request.tripStyle)} Adventure ({request.dates.startDate} to {request.dates.endDate})"
+
+    prompt = f"""
+    Create a simple and attractive travel itinerary name for a trip to {request.location.destination}.
+
+    Format examples:
+    - "Himalayan Bliss in Manali"
+    - "Snow Adventures in Manali & Solang Valley"
+    - "Heritage Trail in Jaipur, Agra & Delhi"
+    - "Peaceful Days in Dharamshala & McLeod Ganj"
+
+    The name should be simple, descriptive, and highlight a key experience or attraction at the destination.
+    DO NOT mention the trip style explicitly in the name.
+    ONLY return the itinerary name itself, nothing else.
+    """
+
+    try:
+        # Use get_gemini_response instead of get_gemini_structured_response to get raw text
+        itinerary_name = await get_gemini_response(prompt, "Generate a simple travel itinerary name")
+        
+        # Clean up the response - remove any quotes, new lines or extra spaces
+        itinerary_name = itinerary_name.strip('"\'').strip()
+        
+        # Fallback if the name is empty or too short
+        if not itinerary_name or len(itinerary_name) < 5:
+            itinerary_name = f"Discover {request.location.destination}"
+    except Exception:
+        itinerary_name = f"Discover {request.location.destination}"
+
     logger.info(f"Created itinerary name: {itinerary_name}")
     
     # Assemble the final itinerary with proper schema and field order
