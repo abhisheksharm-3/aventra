@@ -50,7 +50,7 @@ const Navbar = () => {
     { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
     { path: "/plan", label: "Plan Trip", icon: Sparkles },
     { path: "/explore", label: "Explore", icon: Globe },
-    { path: "/dashboard/trips", label: "My Trips", icon: Map },
+    { path: "/trips", label: "My Trips", icon: Map },
   ];
 
   /**

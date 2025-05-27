@@ -26,6 +26,23 @@ export interface Destination {
   isLoading?: boolean;
 }
 
+export interface InDepthDestination extends Destination {
+  description: string;
+  bestTimeToVisit: string;
+  highlights: string[];
+  travelTips: string[];
+  localCuisine: string[];
+  culturalNotes: string;
+  budget: {
+    currency: string;
+    hostel: string;
+    midRange: string;
+    luxury: string;
+    averageMeal: string;
+    transportDaily: string;
+  };
+  category: string;
+}
 /**
  * Quick action interface
  */

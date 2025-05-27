@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 import { Client, Databases, ID, Query, Models } from "node-appwrite";
@@ -77,6 +78,7 @@ async function saveMainItinerary(
     {
       trip_id: tripId,
       user_id: userId,
+      name: data.name,
       trip_type: data.metadata.trip_type,
       duration_days: data.metadata.duration_days,
       currency: data.metadata.total_budget.currency,
@@ -461,18 +463,28 @@ function organizeTimeBlocksByDay(
       warnings = JSON.parse(block.warnings);
     }
     
-    // Build time block with proper types - using the exact type from GeneratedItineraryResponse
-    const timeBlock: GeneratedItineraryResponse['itinerary'][0]['time_blocks'][0] = {
-      type: block.type, // This is already "fixed" | "flexible"
+    // Build time block with proper types
+    // Use type assertion to resolve the issue
+    const timeBlockBase = {
+      type: block.type,
       start_time: block.start_time,
       end_time: block.end_time,
       duration_minutes: block.duration_minutes
     };
     
-    if (activity) timeBlock.activity = activity;
-    if (travel) timeBlock.travel = travel;
-    if (warnings) timeBlock.warnings = warnings;
+    // Add properties conditionally based on what data we have
+    if (activity) {
+      (timeBlockBase as any).activity = activity;
+    }
+    if (travel) {
+      (timeBlockBase as any).travel = travel;
+    }
+    if (warnings) {
+      (timeBlockBase as any).warnings = warnings;
+    }
     
+    // Type assertion to satisfy TypeScript
+    const timeBlock = timeBlockBase as GeneratedItineraryResponse['itinerary'][0]['time_blocks'][0];
     timeBlocksByDay[dayId].push(timeBlock);
   });
   
@@ -660,7 +672,7 @@ export async function getUserItineraries(): Promise<{
       COLLECTIONS.itineraries,
       [
         Query.equal('user_id', user.$id),
-        Query.orderDesc('created_at')
+        Query.orderDesc('$createdAt')
       ]
     );
     

@@ -34,7 +34,7 @@ export function UpcomingTripsCard({ trips }: { trips: TripData[] }) {
         </CardTitle>
         
         {hasTrips && (
-          <Link href="/dashboard/trips" className="text-sm text-primary hover:text-primary/80 font-medium cursor-pointer">
+          <Link href="/trips" className="text-sm text-primary hover:text-primary/80 font-medium cursor-pointer">
             View all
           </Link>
         )}
