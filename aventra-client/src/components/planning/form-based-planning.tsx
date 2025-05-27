@@ -29,7 +29,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useTripFormStore } from "@/stores/useTripFormStore";
 import { useDestinationInsights } from "@/hooks/useDestinationInsights";
-import { useTrendingDestinations } from "@/hooks/useTrendingDestinations";
+import { useTrendingDestinations } from "@/hooks/useSimilarTrendingDestinations";
 import { currencies } from "@/lib/constants/currencies";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";

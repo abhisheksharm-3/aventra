@@ -1,21 +1,21 @@
-type Temperature = {
+export type Temperature = {
   min: number;
   max: number;
 };
 
-type Weather = {
+export type Weather = {
   temperature: Temperature;
   conditions: string;
   advisory: string;
 };
 
-type Cost = {
+export type Cost = {
   currency: string | null;
   range: string | null;
   per_unit?: string | null;
 };
 
-type Location = {
+export type Location = {
   name: string;
   coordinates: {
     lat: number | null;
@@ -25,7 +25,7 @@ type Location = {
   google_maps_link: string;
 };
 
-type Travel = {
+export type Travel = {
   mode: string | null;
   details: string | null;
   duration: number;
@@ -34,7 +34,7 @@ type Travel = {
   operator: string | null;
 };
 
-type Activity = {
+export type Activity = {
   title: string;
   type: string;
   description: string;
@@ -47,13 +47,13 @@ type Activity = {
   highlights: string[];
 };
 
-type Warning = {
+export type Warning = {
   type: string;
   message: string;
   priority: number;
 };
 
-type TimeBlock = {
+export type TimeBlock = {
   type: string;
   start_time: string;
   end_time: string;
@@ -63,14 +63,14 @@ type TimeBlock = {
   warnings: Warning[];
 };
 
-type Day = {
+export type Day = {
   day_number: number;
   date: string;
   weather: Weather;
   time_blocks: TimeBlock[];
 };
 
-type TotalBudget = {
+export type TotalBudget = {
   currency: string;
   total: string;
   breakdown: {
@@ -81,21 +81,21 @@ type TotalBudget = {
   };
 };
 
-type Preferences = {
+export type Preferences = {
   dietary_restrictions: string[];
   accessibility_needs: boolean;
   pace: string;
   context: string;
 };
 
-type Metadata = {
+export type Metadata = {
   trip_type: string[];
   duration_days: number;
   total_budget: TotalBudget;
   preferences: Preferences;
 };
 
-type Accommodation = {
+export type Accommodation = {
   name: string;
   type: string;
   location: Location;
@@ -107,7 +107,7 @@ type Accommodation = {
   description: string;
 };
 
-type DiningOption = {
+export type DiningOption = {
   name: string;
   cuisine: string;
   price_range: string;
@@ -119,7 +119,7 @@ type DiningOption = {
   description: string;
 };
 
-type Transportation = {
+export type Transportation = {
   mode: string;
   from?: string;
   to?: string;
@@ -133,13 +133,13 @@ type Transportation = {
   details: string;
 };
 
-type Recommendations = {
+export type Recommendations = {
   accommodations: Accommodation[];
   dining: DiningOption[];
   transportation: Transportation[];
 };
 
-type EssentialInfo = {
+export type EssentialInfo = {
   documents: string[];
   emergency_contacts: {
     type: string;
@@ -168,9 +168,10 @@ export type ItineraryData = {
 };
 
 // Define the API response type
-export type ApiResponse = {
+export type GeneratedItineraryResponse = {
   isSuccess: boolean;
   id: string;
+  name: string;
   error?: string;
   metadata: {
     trip_type: string;
@@ -311,7 +312,7 @@ export type ApiResponse = {
 
 // Define the store state
 export interface ItineraryState {
-  itineraryData: ApiResponse | null;
-  setItineraryData: (data: ApiResponse) => void;
+  itineraryData: GeneratedItineraryResponse | null;
+  setItineraryData: (data: GeneratedItineraryResponse) => void;
   clearItineraryData: () => void;
 }

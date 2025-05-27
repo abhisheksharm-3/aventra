@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 import { useItineraryStore } from "@/stores/useItineraryStore";
 import { toast } from "sonner";
 import { ID } from "node-appwrite";
-import { ApiResponse } from "@/types/itinerary";
+import { GeneratedItineraryResponse } from "@/types/itinerary";
 
 /**
  * API configuration for backend requests
@@ -27,10 +27,10 @@ const API_CONFIG = {
  * Submit trip plan data to the backend API
  * 
  * @param {TripFormValues} data - The validated trip form data
- * @returns {Promise<ApiResponse>} Response containing the generated itinerary
+ * @returns {Promise<GeneratedItineraryResponse>} Response containing the generated itinerary
  * @throws {Error} When the API request fails
  */
-const submitTripPlan = async (data: TripFormValues): Promise<ApiResponse> => {
+const submitTripPlan = async (data: TripFormValues): Promise<GeneratedItineraryResponse> => {
   try {
     const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.generate}`, {
       method: 'POST',
@@ -79,7 +79,7 @@ export function useTripSubmission() {
   const router = useRouter();
   const { setItineraryData, setActiveItinerary } = useItineraryStore();
   
-  const mutation = useMutation<ApiResponse, Error, TripFormValues>({
+  const mutation = useMutation<GeneratedItineraryResponse, Error, TripFormValues>({
     mutationFn: submitTripPlan,
     onSuccess: (data) => {
       // Make sure the itinerary has an ID

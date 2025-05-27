@@ -26,7 +26,7 @@ const validationCache = new Map<string, boolean>();
  * @param url - Image URL to validate
  * @returns Promise that resolves to boolean indicating if URL is valid
  */
-async function isImageUrlValid(url: string): Promise<boolean> {
+export async function isImageUrlValid(url: string): Promise<boolean> {
   // Return cached result if available
   if (validationCache.has(url)) {
     return validationCache.get(url) as boolean;
