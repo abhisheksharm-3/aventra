@@ -1,5 +1,5 @@
 import os
-import google.generativeai as genai
+import google.generativeai as genai # type: ignore
 import json
 import logging
 import re
@@ -21,7 +21,7 @@ def _sync_gemini_call(prompt: str, system_instruction: Optional[str] = None) -> 
     """
     Synchronous call to Gemini API - will be run in a thread pool
     """
-    model = genai.GenerativeModel(model_name="gemini-1.5-flash")
+    model = genai.GenerativeModel(model_name="gemini-2.0-flash")
     
     try:
         if system_instruction:

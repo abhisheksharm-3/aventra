@@ -1,12 +1,12 @@
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
+from fastapi import FastAPI, HTTPException, Request # type: ignore
+from fastapi.middleware.cors import CORSMiddleware # type: ignore
+from fastapi.responses import JSONResponse # type: ignore
+from fastapi.exceptions import RequestValidationError # type: ignore
 import logging
 import os
 import asyncio
 from dotenv import load_dotenv
-from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.exceptions import HTTPException as StarletteHTTPException # type: ignore
 import time
 
 from app.models.request import ItineraryRequest
