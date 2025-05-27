@@ -44,11 +44,11 @@ async def generate_metadata(request: ItineraryRequest) -> Dict:
     duration_days = (end_date - start_date).days + 1
     
     # Extract budget info
-    currency = "₹"  # Changed from "USD" to "₹"
+    currency = "USD"  # Default
     total_budget = "Budget not specified"
-    
+
     if request.budget:
-        currency = "₹"  # Changed from request.budget.currency to "₹"
+        currency = request.budget.currency  
         total_budget = str(request.budget.ceiling)
     
     # Generate breakdown based on trip style
@@ -295,12 +295,9 @@ async def generate_day_with_assigned_venues(day_number, date_str, request, weath
                         meal_type = "dinner"
                     
                     # Format the price range correctly with descriptive text
-                    # Changed from descriptive to numeric range
                     price_range = venue_data.get("price_range", "600-1200 per person")
                     if "per person" not in price_range and "for" not in price_range:
                         price_range = f"{price_range} per person"
-                    # Convert "INR" to "₹" in price range
-                    price_range = price_range.replace("INR", "₹")
                         
                     activity = {
                         "title": activity_title,
@@ -310,26 +307,26 @@ async def generate_day_with_assigned_venues(day_number, date_str, request, weath
                             "name": venue_data.get("name"),
                             "coordinates": {"lat": 0, "lng": 0},
                             "google_maps_link": f"https://www.google.com/maps/search/?api=1&query={urllib.parse.quote(venue_data.get('name', 'restaurant'))}"
-                            # Changed link to google_maps_link
                         },
                         "duration": time_block["duration_minutes"],
                         "cost": {
-                            "currency": "₹",  # Changed from "INR" to "₹"
+                            "currency": request.budget.currency,
                             "range": price_range
                         },
                         "images": venue_data.get("images", []),
-                        "link": venue_data.get("link") or venue_data.get("reservation_link"),  # Changed the order, preferring "link"
+                        "link": venue_data.get("link") or venue_data.get("reservation_link"),
                         "priority": 2,
                         "highlights": ["Local cuisine", "Authentic flavors", "Dining experience"]
                     }
                 else:
                     # Format the cost range correctly with descriptive text
-                    cost = venue_data.get("cost") or {"currency": "₹", "range": "500-1000 per person"}  # Changed "INR" to "₹"
+                    cost = venue_data.get("cost") or {"currency": request.budget.currency, "range": "500-1000 per person"}
                     if "range" in cost and "per person" not in cost["range"] and "for" not in cost["range"]:
                         cost["range"] = f"{cost['range']} per person"
-                    # Convert "INR" to "₹" in cost range
-                    if "currency" in cost and cost["currency"] == "INR":
-                        cost["currency"] = "₹"
+                    
+                    # Ensure correct currency
+                    if "currency" in cost:
+                        cost["currency"] = request.budget.currency
                         
                     activity = {
                         "title": activity_title,
@@ -339,12 +336,11 @@ async def generate_day_with_assigned_venues(day_number, date_str, request, weath
                             "name": venue_data.get("title"),
                             "coordinates": {"lat": 0, "lng": 0},
                             "google_maps_link": f"https://www.google.com/maps/search/?api=1&query={urllib.parse.quote(venue_data.get('title', 'attraction'))}"
-                            # Changed link to google_maps_link
                         },
                         "duration": time_block["duration_minutes"],
                         "cost": cost,
                         "images": venue_data.get("images", []),
-                        "link": venue_data.get("link") or venue_data.get("booking_link"),  # Changed the order, preferring "link"
+                        "link": venue_data.get("link") or venue_data.get("booking_link"),
                         "priority": venue_data.get("priority", 2),
                         "highlights": venue_data.get("highlights") or ["Cultural experience", "Local attraction", "Must-see destination"]
                     }
@@ -358,10 +354,9 @@ async def generate_day_with_assigned_venues(day_number, date_str, request, weath
                         "name": activity_title,
                         "coordinates": {"lat": 0, "lng": 0},
                         "google_maps_link": f"https://www.google.com/maps/search/?api=1&query={urllib.parse.quote(activity_title)}"
-                        # Changed link to google_maps_link
                     },
                     "duration": time_block["duration_minutes"],
-                    "cost": {"currency": "₹", "range": "500-800 per person"},  # Changed "INR" to "₹" and made range numeric
+                    "cost": {"currency": request.budget.currency, "range": "500-800 per person"},
                     "images": [],
                     "link": None,
                     "priority": 2,
@@ -374,7 +369,7 @@ async def generate_day_with_assigned_venues(day_number, date_str, request, weath
                 "details": block.get("travel", {}).get("details", f"Travel to {activity_title}"),
                 "duration_minutes": block.get("travel", {}).get("duration", 15),
                 "cost": {
-                    "currency": "₹",  # Changed from "INR" to "₹"
+                    "currency": request.budget.currency,
                     "range": "0" if block.get("travel", {}).get("mode") == "walking" else "200-300"
                 },
                 "link": block.get("travel", {}).get("link"),
@@ -420,11 +415,9 @@ def create_fallback_day(day_number, date_str, restaurants, activities, weather, 
     if restaurants:
         breakfast = restaurants[0]
         # Format price range correctly with descriptive text
-        price_range = breakfast.get("price_range", "400-600 per person")  # Changed to numeric range
+        price_range = breakfast.get("price_range", "400-600 per person")
         if "per person" not in price_range and "for" not in price_range:
             price_range = f"{price_range} per person"
-        # Convert "INR" to "₹" in price range
-        price_range = price_range.replace("INR", "₹")
             
         time_blocks.append({
             "type": "fixed",
@@ -439,15 +432,14 @@ def create_fallback_day(day_number, date_str, restaurants, activities, weather, 
                     "name": breakfast.get("name", "Local Restaurant"),
                     "coordinates": {"lat": 0, "lng": 0},
                     "google_maps_link": f"https://www.google.com/maps/search/?api=1&query={urllib.parse.quote(breakfast.get('name', 'restaurant'))}"
-                    # Changed link to google_maps_link
                 },
                 "duration": 60,
                 "cost": {
-                    "currency": "₹",  # Changed from "INR" to "₹"
+                    "currency": request.budget.currency,
                     "range": price_range
                 },
                 "images": breakfast.get("images", []),
-                "link": breakfast.get("link") or breakfast.get("reservation_link"),  # Changed to prefer "link"
+                "link": breakfast.get("link") or breakfast.get("reservation_link"),
                 "priority": 2,
                 "highlights": ["Morning meal", "Local cuisine", "Energizing start"]
             },
@@ -455,7 +447,7 @@ def create_fallback_day(day_number, date_str, restaurants, activities, weather, 
                 "mode": "walking",
                 "details": "Walk to restaurant",
                 "duration_minutes": 15,
-                "cost": {"currency": "₹", "range": "0"},  # Changed from "INR" to "₹"
+                "cost": {"currency": request.budget.currency, "range": "0"},
                 "operator": "Self-guided"
             },
             "warnings": [{
@@ -470,12 +462,13 @@ def create_fallback_day(day_number, date_str, restaurants, activities, weather, 
     if activities:
         morning_activity = activities[0]
         # Format cost range correctly with descriptive text
-        cost = morning_activity.get("cost") or {"currency": "₹", "range": "500-800 per person"}  # Changed "INR" to "₹" and made range numeric
+        cost = morning_activity.get("cost") or {"currency": request.budget.currency, "range": "500-800 per person"}
         if "range" in cost and "per person" not in cost["range"] and "for" not in cost["range"]:
             cost["range"] = f"{cost['range']} per person"
-        # Convert "INR" to "₹" in cost
-        if "currency" in cost and cost["currency"] == "INR":
-            cost["currency"] = "₹"
+        
+        # Ensure correct currency
+        if "currency" in cost:
+            cost["currency"] = request.budget.currency
             
         time_blocks.append({
             "type": "flexible",
@@ -490,12 +483,11 @@ def create_fallback_day(day_number, date_str, restaurants, activities, weather, 
                     "name": morning_activity.get("title", "Local Attraction"),
                     "coordinates": {"lat": 0, "lng": 0},
                     "google_maps_link": f"https://www.google.com/maps/search/?api=1&query={urllib.parse.quote(morning_activity.get('title', 'attraction'))}"
-                    # Changed link to google_maps_link
                 },
                 "duration": morning_activity.get("duration", 150),
                 "cost": cost,
                 "images": morning_activity.get("images", []),
-                "link": morning_activity.get("link") or morning_activity.get("booking_link"),  # Changed to prefer "link"
+                "link": morning_activity.get("link") or morning_activity.get("booking_link"),
                 "priority": morning_activity.get("priority", 2),
                 "highlights": morning_activity.get("highlights") or ["Local attraction", "Cultural experience", "Must-see spot"]
             },
@@ -503,7 +495,7 @@ def create_fallback_day(day_number, date_str, restaurants, activities, weather, 
                 "mode": "taxi",
                 "details": f"Taxi to {morning_activity.get('title', 'attraction')}",
                 "duration_minutes": 20,
-                "cost": {"currency": "₹", "range": "200-300"},  # Changed from "INR" to "₹"
+                "cost": {"currency": request.budget.currency, "range": "200-300"},
                 "operator": "Local Taxi Service"
             },
             "warnings": [{
@@ -518,11 +510,9 @@ def create_fallback_day(day_number, date_str, restaurants, activities, weather, 
     if len(restaurants) > 1:
         lunch = restaurants[1]
         # Format price range correctly with descriptive text
-        price_range = lunch.get("price_range", "600-900 per person")  # Changed to numeric range
+        price_range = lunch.get("price_range", "600-900 per person")
         if "per person" not in price_range and "for" not in price_range:
             price_range = f"{price_range} per person"
-        # Convert "INR" to "₹" in price range
-        price_range = price_range.replace("INR", "₹")
             
         time_blocks.append({
             "type": "fixed",
@@ -537,15 +527,14 @@ def create_fallback_day(day_number, date_str, restaurants, activities, weather, 
                     "name": lunch.get("name", "Local Restaurant"),
                     "coordinates": {"lat": 0, "lng": 0},
                     "google_maps_link": f"https://www.google.com/maps/search/?api=1&query={urllib.parse.quote(lunch.get('name', 'restaurant'))}"
-                    # Changed link to google_maps_link
                 },
                 "duration": 90,
                 "cost": {
-                    "currency": "₹",  # Changed from "INR" to "₹"
+                    "currency": request.budget.currency,
                     "range": price_range
                 },
                 "images": lunch.get("images", []),
-                "link": lunch.get("link") or lunch.get("reservation_link"),  # Changed to prefer "link"
+                "link": lunch.get("link") or lunch.get("reservation_link"),
                 "priority": 2,
                 "highlights": ["Midday meal", "Local flavors", "Dining experience"]
             },
@@ -553,7 +542,7 @@ def create_fallback_day(day_number, date_str, restaurants, activities, weather, 
                 "mode": "taxi",
                 "details": f"Taxi to {lunch.get('name', 'restaurant')}",
                 "duration_minutes": 20,
-                "cost": {"currency": "₹", "range": "200-300"},  # Changed from "INR" to "₹"
+                "cost": {"currency": request.budget.currency, "range": "200-300"},
                 "operator": "Local Taxi Service"
             },
             "warnings": [{
@@ -568,12 +557,13 @@ def create_fallback_day(day_number, date_str, restaurants, activities, weather, 
     if len(activities) > 1:
         afternoon_activity = activities[1]
         # Format cost range correctly with descriptive text
-        cost = afternoon_activity.get("cost") or {"currency": "₹", "range": "600-900 per person"}  # Changed "INR" to "₹" and made range numeric
+        cost = afternoon_activity.get("cost") or {"currency": request.budget.currency, "range": "600-900 per person"}
         if "range" in cost and "per person" not in cost["range"] and "for" not in cost["range"]:
             cost["range"] = f"{cost['range']} per person"
-        # Convert "INR" to "₹" in cost
-        if "currency" in cost and cost["currency"] == "INR":
-            cost["currency"] = "₹"
+        
+        # Ensure correct currency
+        if "currency" in cost:
+            cost["currency"] = request.budget.currency
             
         time_blocks.append({
             "type": "flexible",
@@ -588,12 +578,11 @@ def create_fallback_day(day_number, date_str, restaurants, activities, weather, 
                     "name": afternoon_activity.get("title", "Local Attraction"),
                     "coordinates": {"lat": 0, "lng": 0},
                     "google_maps_link": f"https://www.google.com/maps/search/?api=1&query={urllib.parse.quote(afternoon_activity.get('title', 'attraction'))}"
-                    # Changed link to google_maps_link
                 },
                 "duration": afternoon_activity.get("duration", 120),
                 "cost": cost,
                 "images": afternoon_activity.get("images", []),
-                "link": afternoon_activity.get("link") or afternoon_activity.get("booking_link"),  # Changed to prefer "link"
+                "link": afternoon_activity.get("link") or afternoon_activity.get("booking_link"),
                 "priority": afternoon_activity.get("priority", 2),
                 "highlights": afternoon_activity.get("highlights") or ["Popular destination", "Memorable experience", "Local culture"]
             },
@@ -601,7 +590,7 @@ def create_fallback_day(day_number, date_str, restaurants, activities, weather, 
                 "mode": "taxi",
                 "details": f"Taxi to {afternoon_activity.get('title', 'attraction')}",
                 "duration_minutes": 25,
-                "cost": {"currency": "₹", "range": "250-350"},  # Changed from "INR" to "₹"
+                "cost": {"currency": request.budget.currency, "range": "250-350"},
                 "operator": "Local Taxi Service"
             },
             "warnings": [{
@@ -618,11 +607,9 @@ def create_fallback_day(day_number, date_str, restaurants, activities, weather, 
     
     if dinner:
         # Format price range correctly with descriptive text
-        price_range = dinner.get("price_range", "800-1200 per person")  # Changed to numeric range
+        price_range = dinner.get("price_range", "800-1200 per person")
         if "per person" not in price_range and "for" not in price_range:
             price_range = f"{price_range} per person"
-        # Convert "INR" to "₹" in price range
-        price_range = price_range.replace("INR", "₹")
             
         time_blocks.append({
             "type": "fixed",
@@ -637,15 +624,14 @@ def create_fallback_day(day_number, date_str, restaurants, activities, weather, 
                     "name": dinner.get("name", "Local Restaurant"),
                     "coordinates": {"lat": 0, "lng": 0},
                     "google_maps_link": f"https://www.google.com/maps/search/?api=1&query={urllib.parse.quote(dinner.get('name', 'restaurant'))}"
-                    # Changed link to google_maps_link
                 },
                 "duration": 90,
                 "cost": {
-                    "currency": "₹",  # Changed from "INR" to "₹"
+                    "currency": request.budget.currency,
                     "range": price_range
                 },
                 "images": dinner.get("images", []),
-                "link": dinner.get("link") or dinner.get("reservation_link"),  # Changed to prefer "link"
+                "link": dinner.get("link") or dinner.get("reservation_link"),
                 "priority": 2,
                 "highlights": ["Evening dining", "Local cuisine", "Relaxing atmosphere"]
             },
@@ -653,7 +639,7 @@ def create_fallback_day(day_number, date_str, restaurants, activities, weather, 
                 "mode": "taxi",
                 "details": f"Taxi to {dinner.get('name', 'restaurant')}",
                 "duration_minutes": 20,
-                "cost": {"currency": "₹", "range": "200-300"},  # Changed from "INR" to "₹"
+                "cost": {"currency": request.budget.currency, "range": "200-300"},
                 "operator": "Local Taxi Service"
             },
             "warnings": [{
@@ -758,17 +744,8 @@ async def generate_complete_itinerary(request: ItineraryRequest) -> Dict[str, An
             if "price_range" in dining:
                 price_range = dining["price_range"]
                 if isinstance(price_range, str):
-                    if "INR" in price_range:
-                        # Convert "INR X-Y" to "₹X-Y per person"
-                        price_range = price_range.replace("INR", "₹")
-                        if "per person" not in price_range and "for" not in price_range:
-                            price_range = f"{price_range} per person"
-                    elif not price_range.startswith("₹"):
-                        # Try to extract numeric range
-                        if "-" in price_range:
-                            price_range = f"₹{price_range} per person"
-                        else:
-                            price_range = f"₹600-900 per person"  # Default
+                    if "per person" not in price_range and "for" not in price_range:
+                        price_range = f"{price_range} per person"
                     dining["price_range"] = price_range
             
             # Fix links for restaurants
@@ -797,8 +774,7 @@ async def generate_complete_itinerary(request: ItineraryRequest) -> Dict[str, An
                     if "cost" in activity:
                         cost = activity["cost"]
                         if isinstance(cost, dict) and "currency" in cost:
-                            if cost["currency"] == "INR":
-                                cost["currency"] = "₹"
+                            cost["currency"] = request.budget.currency
                             if "range" in cost and isinstance(cost["range"], str):
                                 if "per person" not in cost["range"] and "for" not in cost["range"]:
                                     cost["range"] = f"{cost['range']} per person"
@@ -877,12 +853,13 @@ async def generate_complete_itinerary(request: ItineraryRequest) -> Dict[str, An
         for item in transport_options.get("main_transport"):
             if isinstance(item, dict):
                 # Format cost range correctly with descriptive text
-                cost = item.get("cost") or {"currency": "₹", "range": "1000-2000 for full trip"}  # Changed "INR" to "₹"
+                cost = item.get("cost") or {"currency": request.budget.currency, "range": "1000-2000 for full trip"}
                 if "range" in cost and "per person" not in cost["range"] and "for" not in cost["range"]:
                     cost["range"] = f"{cost['range']} for full trip"
-                # Convert "INR" to "₹" in cost
-                if "currency" in cost and cost["currency"] == "INR":
-                    cost["currency"] = "₹"
+                
+                # Ensure correct currency
+                if "currency" in cost:
+                    cost["currency"] = request.budget.currency
                     
                 # Fix links
                 link = item.get("link") or item.get("booking_link")
@@ -902,12 +879,13 @@ async def generate_complete_itinerary(request: ItineraryRequest) -> Dict[str, An
         for item in transport_options.get("local_transport"):
             if isinstance(item, dict):
                 # Format cost range correctly with descriptive text
-                cost = item.get("cost") or {"currency": "₹", "range": "200-400 per trip"}  # Changed "INR" to "₹"
+                cost = item.get("cost") or {"currency": request.budget.currency, "range": "200-400 per trip"}
                 if "range" in cost and "per person" not in cost["range"] and "for" not in cost["range"]:
                     cost["range"] = f"{cost['range']} per trip"
-                # Convert "INR" to "₹" in cost
-                if "currency" in cost and cost["currency"] == "INR":
-                    cost["currency"] = "₹"
+                
+                # Ensure correct currency
+                if "currency" in cost:
+                    cost["currency"] = request.budget.currency
                     
                 # Convert to schema-compliant format
                 transportation_options.append({
@@ -926,7 +904,7 @@ async def generate_complete_itinerary(request: ItineraryRequest) -> Dict[str, An
             "details": f"Transportation in {request.location.destination}",
             "duration_minutes": 60,
             "cost": {
-                "currency": "₹",  # Changed from "INR" to "₹"
+                "currency": request.budget.currency,
                 "range": "600-1200 for full day"
             },
             "link": None,
@@ -940,18 +918,9 @@ async def generate_complete_itinerary(request: ItineraryRequest) -> Dict[str, An
         if "price_range" in accommodation:
             price_range = accommodation["price_range"]
             if isinstance(price_range, str):
-                if "INR" in price_range:
-                    # Convert "INR X-Y" to "₹X-Y per night"
-                    price_range = price_range.replace("INR", "₹")
-                    if "per night" not in price_range:
-                        price_range = f"{price_range} per night"
-                elif not price_range.startswith("₹"):
-                    # Try to extract numeric range
-                    if "-" in price_range:
-                        price_range = f"₹{price_range} per night"
-                    else:
-                        price_range = f"₹6000-9000 per night"  # Default
-            accommodation["price_range"] = price_range
+                if "per night" not in price_range:
+                    price_range = f"{price_range} per night"
+                accommodation["price_range"] = price_range
         
         # Fix links for accommodations
         if "booking_link" in accommodation and not "link" in accommodation:
@@ -973,18 +942,9 @@ async def generate_complete_itinerary(request: ItineraryRequest) -> Dict[str, An
         if "price_range" in dining:
             price_range = dining["price_range"]
             if isinstance(price_range, str):
-                if "INR" in price_range:
-                    # Convert "INR X-Y" to "₹X-Y for two"
-                    price_range = price_range.replace("INR", "₹")
-                    if "for two" not in price_range:
-                        price_range = f"{price_range} for two"
-                elif not price_range.startswith("₹"):
-                    # Try to extract numeric range
-                    if "-" in price_range:
-                        price_range = f"₹{price_range} for two"
-                    else:
-                        price_range = f"₹1500-2500 for two"  # Default
-            dining["price_range"] = price_range
+                if "for two" not in price_range:
+                    price_range = f"{price_range} for two"
+                dining["price_range"] = price_range
         
         # Fix links for dining
         if "reservation_link" in dining and not "link" in dining:
