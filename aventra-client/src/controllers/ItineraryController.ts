@@ -1,7 +1,6 @@
 "use server";
 
 import { Client, Databases, ID, Query, Models } from "node-appwrite";
-import { cookies } from "next/headers";
 import { getLoggedInUser } from "@/lib/services/appwrite/appwrite";
 import { 
   GeneratedItineraryResponse,
@@ -26,6 +25,7 @@ async function createDatabaseClient(): Promise<Databases> {
   try {
     const endpoint = process.env.APPWRITE_ENDPOINT;
     const projectId = process.env.APPWRITE_PROJECT_ID;
+    const apiKey = process.env.APPWRITE_KEY!;
     
     if (!endpoint || !projectId) {
       throw new Error("Missing required environment variables");
@@ -33,17 +33,8 @@ async function createDatabaseClient(): Promise<Databases> {
     
     const client = new Client()
       .setEndpoint(endpoint)
-      .setProject(projectId);
-    
-    // Get user session
-    const userCookies = await cookies();
-    const session = userCookies.get("user-session");
-    
-    if (!session?.value) {
-      throw new Error("No valid session found");
-    }
-    
-    client.setSession(session.value);
+      .setProject(projectId)
+      .setKey(apiKey);
     
     return new Databases(client);
   } catch (error) {
