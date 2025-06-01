@@ -147,7 +147,7 @@ export type EssentialInfo = {
   }[];
 };
 
-type JourneyPath = {
+export type JourneyPath = {
   overview: {
     lat: number;
     lng: number;
@@ -209,41 +209,43 @@ export type GeneratedItineraryResponse = {
       start_time: string;
       end_time: string;
       duration_minutes: number;
-      activity?: {
+      activity: {
         title: string;
         type: string;
         description: string;
-        location?: {
+        location: {
           name: string;
           coordinates: {
             lat: number;
             lng: number;
           };
-          altitude?: number;
-          google_maps_link?: string;
+          altitude: number;
+          google_maps_link: string;
         };
         duration: number;
-        cost?: {
+        cost: {
           currency: string;
           range: string;
         };
-        images?: string[];
-        priority?: number;
+        images: string[];
+        link: string | null;
+        highlights: string[];
+        priority: number;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         backup_alternative_options?: any[];
       };
-      travel?: {
+      travel: {
         mode: "flight" | "train" | "car" | "bus";
         details: string;
         duration: number;
-        cost?: {
+        cost: {
           currency: string;
           range: string;
         };
-        link?: string;
-        operator?: string;
+        link: string | null;
+        operator: string | null;
       };
-      warnings?: Array<{
+      warnings: Array<{
         type: string;
         message: string;
         priority: number;
@@ -273,8 +275,18 @@ export type GeneratedItineraryResponse = {
       cuisine: string;
       price_range: string;
       dietary_options: string[];
+      signature_dishes: string[];
+      location: {
+        name: string;
+        coordinates: {
+          lat: number;
+          lng: number;
+        };
+        google_maps_link?: string;
+      };
+      description: string;
       images: string[];
-      link?: string;
+      link: string;
     }>;
     transportation: Array<{
       mode: string;
@@ -315,4 +327,55 @@ export interface ItineraryState {
   itineraryData: GeneratedItineraryResponse | null;
   setItineraryData: (data: GeneratedItineraryResponse) => void;
   clearItineraryData: () => void;
+}
+
+export interface TripMetadata {
+  trip_type: string;
+  duration_days: number;
+  total_budget: Budget;
+  preferences: Preferences;
+}
+
+export interface Budget {
+  currency: string;
+  total: string;
+  breakdown: {
+    accommodation: number;
+    transportation: number;
+    activities: number;
+    food: number;
+  };
+}
+
+export interface DayItinerary {
+  day_number: number;
+  date: string;
+  weather: Weather;
+  time_blocks: TimeBlock[];
+}
+export interface Dining {
+  name: string;
+  cuisine: string;
+  price_range: string;
+  dietary_options: string[];
+  signature_dishes: string[];
+  location: Location;
+  description: string;
+  images: string[];
+  link: string;
+}
+
+export interface EmergencyContact {
+  type: string;
+  number: string;
+}
+
+export interface Coordinates {
+  lat: number;
+  lng: number;
+}
+
+export interface ElevationPoint {
+  distance: number;
+  elevation: number;
 }

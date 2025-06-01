@@ -163,6 +163,8 @@ export function useTripForm() {
   const { formData, updateFormData, updateTravelers } = useTripFormStore();
   // Flag to prevent circular updates
   const isUpdatingFromStore = useRef(false);
+  // Track if form has been initialized from store
+  const isFormInitialized = useRef(false);
   
   const form = useForm<TripFormValues>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any 
@@ -174,12 +176,11 @@ export function useTripForm() {
     mode: "onChange",
   });
   
-  // Update form values from store when they change
+  // Initialize form values from store ONLY ONCE on first render
   useEffect(() => {
-    // Set flag to prevent the watch effect from triggering store updates
-    isUpdatingFromStore.current = true;
-    
-    if (Object.keys(formData).length > 0) {
+    if (!isFormInitialized.current && Object.keys(formData).length > 0) {
+      isUpdatingFromStore.current = true;
+      
       const resetValues = {
         ...initialFormData,
         ...formData,
@@ -191,14 +192,14 @@ export function useTripForm() {
         keepIsValid: true,
         keepTouched: true,
       });
+      
+      isFormInitialized.current = true;
+      
+      // Reset flag after a short delay
+      setTimeout(() => {
+        isUpdatingFromStore.current = false;
+      }, 10);
     }
-    
-    // Reset flag after a short delay to allow form to stabilize
-    const timer = setTimeout(() => {
-      isUpdatingFromStore.current = false;
-    }, 10);
-    
-    return () => clearTimeout(timer);
   }, [formData, form]);
   
   // Special watcher for traveler fields to ensure count stays in sync
@@ -250,7 +251,7 @@ export function useTripForm() {
             updateFormData(JSON.parse(JSON.stringify(value)) as Partial<TripFormValues>);
           }
         }
-      }, 100); // 100ms debounce
+      }, 300); // Increased debounce to 300ms for better typing experience
     });
     
     return () => {
