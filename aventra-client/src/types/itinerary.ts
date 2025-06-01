@@ -291,7 +291,7 @@ export type GeneratedItineraryResponse = {
     transportation: Array<{
       mode: string;
       details: string;
-      duration: number;
+      duration_minutes: number;
       cost: {
         currency: string;
         range: string;

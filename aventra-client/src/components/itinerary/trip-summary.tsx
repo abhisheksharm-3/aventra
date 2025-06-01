@@ -3,7 +3,6 @@ import { TripMetadata } from "@/types/itinerary";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Progress } from "@/components/ui/progress";
 import {
   Compass,
   Calendar,
@@ -70,15 +69,6 @@ const TripSummary: React.FC<TripSummaryProps> = ({
             <span className="text-sm font-medium">
               {metadata.total_budget?.total} {metadata.total_budget?.currency}
             </span>
-          </div>
-          
-          {/* Budget Progress */}
-          <div className="space-y-2">
-            <div className="flex justify-between text-xs">
-              <span className="text-muted-foreground">Budget Progress</span>
-              <span>40%</span>
-            </div>
-            <Progress value={40} className="h-2" />
           </div>
           
           <Separator />

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Calendar, Map, FileText, PieChart, Building, UtensilsCrossed } from "lucide-react";
+import { Calendar, Map, FileText, PieChart, Building, UtensilsCrossed, Car } from "lucide-react";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
@@ -14,6 +14,7 @@ import EssentialInfoContent from "./essential-info";
 import TripSummary from "./trip-summary";
 import AccommodationList from "./accomodation-list";
 import RestaurantList from "./restaurant-list";
+import TransportationList from "./transportation-list";
 
 interface TripItineraryProps {
   tripData: GeneratedItineraryResponse;
@@ -109,6 +110,10 @@ export default function TripItineraryDisplay({
                   <UtensilsCrossed className="h-4 w-4" />
                   <span>Dining</span>
                 </TabsTrigger>
+                <TabsTrigger value="transportation" className="flex gap-1.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                  <Car className="h-4 w-4" />
+                  <span>Transport</span>
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent 
@@ -119,7 +124,6 @@ export default function TripItineraryDisplay({
                   metadata={tripData.metadata} 
                   currentUser={currentUser}
                   currentDateTime={currentDateTime}
-
                 />
               </TabsContent>
 
@@ -135,6 +139,13 @@ export default function TripItineraryDisplay({
                 className="focus-visible:outline-none focus-visible:ring-0 mt-0 animate-in fade-in-50 data-[state=inactive]:animate-out data-[state=inactive]:fade-out-0"
               >
                 <RestaurantList restaurants={tripData.recommendations.dining} />
+              </TabsContent>
+              
+              <TabsContent 
+                value="transportation" 
+                className="focus-visible:outline-none focus-visible:ring-0 mt-0 animate-in fade-in-50 data-[state=inactive]:animate-out data-[state=inactive]:fade-out-0"
+              >
+                <TransportationList transportation={tripData.recommendations.transportation} />
               </TabsContent>
             </Tabs>
           </div>
