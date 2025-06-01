@@ -364,6 +364,7 @@ async def generate_day_with_assigned_venues(day_number, date_str, request, weath
                 }
                 
             # Add travel information with consistent operator field
+            # Add travel information with consistent operator field
             travel = {
                 "mode": block.get("travel", {}).get("mode", "taxi"),
                 "details": block.get("travel", {}).get("details", f"Travel to {activity_title}"),
@@ -375,6 +376,24 @@ async def generate_day_with_assigned_venues(day_number, date_str, request, weath
                 "link": block.get("travel", {}).get("link"),
                 "operator": block.get("travel", {}).get("operator", "Local Transportation Service")
             }
+
+            # Add fallback Google Maps link if link is null
+            if travel["link"] is None:
+                # Create a Google Maps link based on destination
+                destination_query = urllib.parse.quote(activity_title)
+                if activity.get("location") and activity["location"].get("name"):
+                    destination_query = urllib.parse.quote(activity["location"]["name"])
+                
+                # Use different search types based on transport mode
+                mode = travel["mode"].lower()
+                if "taxi" in mode:
+                    travel["link"] = f"https://www.google.com/maps/search/taxi+to+{destination_query}"
+                elif "walk" in mode:
+                    travel["link"] = f"https://www.google.com/maps/dir/?api=1&travelmode=walking&destination={destination_query}"
+                elif "bus" in mode or "transit" in mode:
+                    travel["link"] = f"https://www.google.com/maps/dir/?api=1&travelmode=transit&destination={destination_query}"
+                else:
+                    travel["link"] = f"https://www.google.com/maps/dir/?api=1&destination={destination_query}"
             
             # Add warnings (ensure we always have at least one)
             warnings = [{
@@ -404,6 +423,23 @@ async def generate_day_with_assigned_venues(day_number, date_str, request, weath
         logger.error(f"Error generating day {day_number}: {str(e)}")
         return create_fallback_day(day_number, date_str, restaurants, activities, day_weather, request)
     
+def ensure_travel_has_link(travel, destination):
+    """Ensure travel object has a link, adding Google Maps link if needed."""
+    if "link" not in travel or not travel["link"]:
+        destination_query = urllib.parse.quote(destination)
+        mode = travel.get("mode", "").lower()
+        
+        if "walk" in mode:
+            travel["link"] = f"https://www.google.com/maps/dir/?api=1&travelmode=walking&destination={destination_query}"
+        elif "bus" in mode or "transit" in mode:
+            travel["link"] = f"https://www.google.com/maps/dir/?api=1&travelmode=transit&destination={destination_query}"
+        elif "taxi" in mode or "car" in mode:
+            travel["link"] = f"https://www.google.com/maps/search/taxi+to+{destination_query}"
+        else:
+            travel["link"] = f"https://www.google.com/maps/dir/?api=1&destination={destination_query}"
+    
+    return travel
+
 def create_fallback_day(day_number, date_str, restaurants, activities, weather, request):
     """
     Create a fallback day itinerary if generation fails.
@@ -418,6 +454,17 @@ def create_fallback_day(day_number, date_str, restaurants, activities, weather, 
         price_range = breakfast.get("price_range", "400-600 per person")
         if "per person" not in price_range and "for" not in price_range:
             price_range = f"{price_range} per person"
+            
+        # Create travel object with link
+        breakfast_travel = {
+            "mode": "walking",
+            "details": "Walk to restaurant",
+            "duration_minutes": 15,
+            "cost": {"currency": request.budget.currency, "range": "0"},
+            "operator": "Self-guided"
+        }
+        # Ensure travel has link
+        breakfast_travel = ensure_travel_has_link(breakfast_travel, breakfast.get('name', 'restaurant'))
             
         time_blocks.append({
             "type": "fixed",
@@ -443,13 +490,7 @@ def create_fallback_day(day_number, date_str, restaurants, activities, weather, 
                 "priority": 2,
                 "highlights": ["Morning meal", "Local cuisine", "Energizing start"]
             },
-            "travel": {
-                "mode": "walking",
-                "details": "Walk to restaurant",
-                "duration_minutes": 15,
-                "cost": {"currency": request.budget.currency, "range": "0"},
-                "operator": "Self-guided"
-            },
+            "travel": breakfast_travel,
             "warnings": [{
                 "type": "general",
                 "message": weather.get("advisory", "Check local conditions"),
@@ -469,6 +510,17 @@ def create_fallback_day(day_number, date_str, restaurants, activities, weather, 
         # Ensure correct currency
         if "currency" in cost:
             cost["currency"] = request.budget.currency
+            
+        # Create travel object with link
+        morning_travel = {
+            "mode": "taxi",
+            "details": f"Taxi to {morning_activity.get('title', 'attraction')}",
+            "duration_minutes": 20,
+            "cost": {"currency": request.budget.currency, "range": "200-300"},
+            "operator": "Local Taxi Service"
+        }
+        # Ensure travel has link
+        morning_travel = ensure_travel_has_link(morning_travel, morning_activity.get('title', 'attraction'))
             
         time_blocks.append({
             "type": "flexible",
@@ -491,13 +543,7 @@ def create_fallback_day(day_number, date_str, restaurants, activities, weather, 
                 "priority": morning_activity.get("priority", 2),
                 "highlights": morning_activity.get("highlights") or ["Local attraction", "Cultural experience", "Must-see spot"]
             },
-            "travel": {
-                "mode": "taxi",
-                "details": f"Taxi to {morning_activity.get('title', 'attraction')}",
-                "duration_minutes": 20,
-                "cost": {"currency": request.budget.currency, "range": "200-300"},
-                "operator": "Local Taxi Service"
-            },
+            "travel": morning_travel,
             "warnings": [{
                 "type": "general",
                 "message": weather.get("advisory", "Check local conditions"),
@@ -513,6 +559,17 @@ def create_fallback_day(day_number, date_str, restaurants, activities, weather, 
         price_range = lunch.get("price_range", "600-900 per person")
         if "per person" not in price_range and "for" not in price_range:
             price_range = f"{price_range} per person"
+            
+        # Create travel object with link
+        lunch_travel = {
+            "mode": "taxi",
+            "details": f"Taxi to {lunch.get('name', 'restaurant')}",
+            "duration_minutes": 20,
+            "cost": {"currency": request.budget.currency, "range": "200-300"},
+            "operator": "Local Taxi Service"
+        }
+        # Ensure travel has link
+        lunch_travel = ensure_travel_has_link(lunch_travel, lunch.get('name', 'restaurant'))
             
         time_blocks.append({
             "type": "fixed",
@@ -538,13 +595,7 @@ def create_fallback_day(day_number, date_str, restaurants, activities, weather, 
                 "priority": 2,
                 "highlights": ["Midday meal", "Local flavors", "Dining experience"]
             },
-            "travel": {
-                "mode": "taxi",
-                "details": f"Taxi to {lunch.get('name', 'restaurant')}",
-                "duration_minutes": 20,
-                "cost": {"currency": request.budget.currency, "range": "200-300"},
-                "operator": "Local Taxi Service"
-            },
+            "travel": lunch_travel,
             "warnings": [{
                 "type": "crowding",
                 "message": "Restaurant may be busy during lunch hours",
@@ -564,6 +615,17 @@ def create_fallback_day(day_number, date_str, restaurants, activities, weather, 
         # Ensure correct currency
         if "currency" in cost:
             cost["currency"] = request.budget.currency
+            
+        # Create travel object with link
+        afternoon_travel = {
+            "mode": "taxi",
+            "details": f"Taxi to {afternoon_activity.get('title', 'attraction')}",
+            "duration_minutes": 25,
+            "cost": {"currency": request.budget.currency, "range": "250-350"},
+            "operator": "Local Taxi Service"
+        }
+        # Ensure travel has link
+        afternoon_travel = ensure_travel_has_link(afternoon_travel, afternoon_activity.get('title', 'attraction'))
             
         time_blocks.append({
             "type": "flexible",
@@ -586,13 +648,7 @@ def create_fallback_day(day_number, date_str, restaurants, activities, weather, 
                 "priority": afternoon_activity.get("priority", 2),
                 "highlights": afternoon_activity.get("highlights") or ["Popular destination", "Memorable experience", "Local culture"]
             },
-            "travel": {
-                "mode": "taxi",
-                "details": f"Taxi to {afternoon_activity.get('title', 'attraction')}",
-                "duration_minutes": 25,
-                "cost": {"currency": request.budget.currency, "range": "250-350"},
-                "operator": "Local Taxi Service"
-            },
+            "travel": afternoon_travel,
             "warnings": [{
                 "type": "weather",
                 "message": f"{weather.get('conditions', 'Local conditions')} may affect your experience",
@@ -610,6 +666,17 @@ def create_fallback_day(day_number, date_str, restaurants, activities, weather, 
         price_range = dinner.get("price_range", "800-1200 per person")
         if "per person" not in price_range and "for" not in price_range:
             price_range = f"{price_range} per person"
+            
+        # Create travel object with link
+        dinner_travel = {
+            "mode": "taxi",
+            "details": f"Taxi to {dinner.get('name', 'restaurant')}",
+            "duration_minutes": 20,
+            "cost": {"currency": request.budget.currency, "range": "200-300"},
+            "operator": "Local Taxi Service"
+        }
+        # Ensure travel has link
+        dinner_travel = ensure_travel_has_link(dinner_travel, dinner.get('name', 'restaurant'))
             
         time_blocks.append({
             "type": "fixed",
@@ -635,13 +702,7 @@ def create_fallback_day(day_number, date_str, restaurants, activities, weather, 
                 "priority": 2,
                 "highlights": ["Evening dining", "Local cuisine", "Relaxing atmosphere"]
             },
-            "travel": {
-                "mode": "taxi",
-                "details": f"Taxi to {dinner.get('name', 'restaurant')}",
-                "duration_minutes": 20,
-                "cost": {"currency": request.budget.currency, "range": "200-300"},
-                "operator": "Local Taxi Service"
-            },
+            "travel": dinner_travel,
             "warnings": [{
                 "type": "reservation",
                 "message": "Reservation recommended during peak hours",
@@ -656,6 +717,7 @@ def create_fallback_day(day_number, date_str, restaurants, activities, weather, 
         "weather": weather,
         "time_blocks": time_blocks
     }
+
 
 async def generate_complete_itinerary(request: ItineraryRequest) -> Dict[str, Any]:
     """
@@ -994,6 +1056,190 @@ async def generate_complete_itinerary(request: ItineraryRequest) -> Dict[str, An
         logger.info(f"Generated day {day_number} itinerary")
 
     logger.info(f"Generated all {len(day_itineraries)} day itineraries sequentially")
+    
+    # Add return journey to the last day (after all day itineraries have been generated)
+    if day_itineraries:  # Make sure we have at least one day
+        last_day = day_itineraries[-1]
+        
+        # Get coordinates for both locations
+        src_coords_task = asyncio.create_task(get_coordinates_from_gemini(request.location.destination))
+        dst_coords_task = asyncio.create_task(get_coordinates_from_gemini(request.location.baseCity))
+        
+        # Get main transport if available, otherwise create a placeholder
+        main_transport = {}
+        if isinstance(transport_options.get("main_transport"), list) and transport_options.get("main_transport"):
+            main_transport = transport_options["main_transport"][0]
+        
+        logger.info("Adding return transport to the last day")
+        
+        # Determine realistic duration based on location context
+        duration_mins = main_transport.get("duration", 120)  # Default 2 hours if not specified
+        
+        # Make duration more realistic based on destination type
+        destination_lower = request.location.destination.lower()
+        base_city_lower = request.location.baseCity.lower()
+        
+        # Check for mountain/remote locations
+        is_mountain = any(term in destination_lower for term in ["mountain", "himalayas", "alps", "spiti", "ladakh", "kaza", "manali", "shimla", "uttarakhand", "kashmir"])
+        is_remote = any(term in destination_lower for term in ["remote", "village", "island", "jungle", "forest", "national park"])
+        
+        # If no explicit duration and mountain/remote location, set realistic duration
+        if not main_transport.get("duration") and (is_mountain or is_remote):
+            if is_mountain:
+                duration_mins = 480  # 8 hours for mountain travel
+            elif is_remote:
+                duration_mins = 300  # 5 hours for remote locations
+        
+        # Format travel mode and times properly
+        travel_mode = main_transport.get("mode", "transport").lower()
+        
+        # Calculate an appropriate departure time that ensures arrival at a reasonable hour
+        # Maximum acceptable arrival time (e.g., 21:00 or 9 PM)
+        max_arrival_time_hours = 21
+        
+        # Calculate the latest possible departure time
+        latest_departure_hours = max_arrival_time_hours - (duration_mins // 60)
+        # Ensure departure isn't too early
+        earliest_departure_hours = 8
+        departure_hours = max(earliest_departure_hours, min(14, latest_departure_hours))
+        
+        # Format the time
+        departure_time = f"{departure_hours:02d}:00"
+        
+        # Calculate arrival time based on duration
+        try:
+            departure_dt = datetime.strptime(departure_time, "%H:%M")
+            arrival_dt = departure_dt + timedelta(minutes=duration_mins)
+            arrival_time = arrival_dt.strftime("%H:%M")
+        except:
+            # Fallback if datetime parsing fails
+            arrival_hours = departure_hours + (duration_mins // 60)
+            arrival_time = f"{min(23, arrival_hours):02d}:00"
+        
+        # Get cost information from transport data or provide realistic fallback
+        cost = main_transport.get("cost", {})
+        if not isinstance(cost, dict):
+            cost = {}
+            
+        cost_currency = cost.get("currency", request.budget.currency)
+        
+        # Set cost range based on mode and duration
+        cost_range = cost.get("range", "")
+        if not cost_range:
+            if "flight" in travel_mode:
+                cost_range = "3000-8000 per person"
+            elif "train" in travel_mode:
+                cost_range = "800-2000 per person"
+            elif "bus" in travel_mode:
+                cost_range = "500-1500 per person"
+            else:
+                cost_range = "1000-3000 per person"
+        
+        # Choose appropriate description based on mode
+        mode_display = "Transport"
+        if "flight" in travel_mode:
+            mode_display = "Flight"
+        elif "train" in travel_mode:
+            mode_display = "Train"
+        elif "bus" in travel_mode:
+            mode_display = "Bus"
+        elif "car" in travel_mode or "taxi" in travel_mode:
+            mode_display = "Car"
+        
+        # Create description with transport details
+        description = f"Return {mode_display.lower()} from {request.location.destination} to {request.location.baseCity}"
+        if is_mountain:
+            description += ". This return journey through mountain terrain takes you back to your starting point."
+        elif is_remote:
+            description += ". The return journey from this remote location may involve multiple connections."
+        
+        # Create warning message based on mode
+        warning_message = "Allow sufficient time for check-in procedures and travel to the departure point."
+        if "flight" in travel_mode:
+            warning_message = "Plan to arrive at the airport 2 hours before your flight's departure for check-in and security."
+        elif "train" in travel_mode:
+            warning_message = "Arrive at the station at least 30 minutes before departure."
+        elif is_mountain:
+            warning_message = "Mountain roads can experience weather-related delays. Check conditions before departure."
+        
+        # Create transport highlights
+        highlights = ["Return journey", "Homeward bound"]
+        if is_mountain:
+            highlights.append("Final mountain views")
+        if "flight" in travel_mode:
+            highlights.append("Quick return trip")
+        elif "train" in travel_mode:
+            highlights.append("Relaxing rail journey home")
+        
+        src_coords = await src_coords_task
+        dst_coords = await dst_coords_task
+        
+        # Check if we already have activities on the last day
+        existing_activities = [block for block in last_day["time_blocks"] if block["activity"]["type"] not in ["transport"]]
+        
+        # If there are existing activities, check if we need to adjust their times
+        if existing_activities and departure_hours < 14:
+            # There are activities and we need to depart before 2 PM
+            # Let's adjust - limit last day activities to morning only
+            morning_end_time = f"{min(departure_hours-1, 11):02d}:00"
+            
+            # Limit the number of activities on the last day to make room for departure
+            keep_activities = []
+            for i, block in enumerate(last_day["time_blocks"]):
+                # Keep transportation blocks and first few activity blocks (morning activities only)
+                if i < 3 or block["activity"]["type"] == "transport":
+                    if block["activity"]["type"] != "transport" and block["end_time"] > morning_end_time:
+                        # Adjust end time to make room for departure
+                        end_dt = datetime.strptime(block["end_time"], "%H:%M")
+                        morning_end_dt = datetime.strptime(morning_end_time, "%H:%M")
+                        if end_dt > morning_end_dt:
+                            block["end_time"] = morning_end_time
+                            duration_diff = (end_dt - morning_end_dt).seconds // 60
+                            block["duration_minutes"] -= duration_diff
+                    keep_activities.append(block)
+            
+            # Replace time blocks with adjusted list
+            last_day["time_blocks"] = keep_activities
+        
+        # Create the return transport time block
+        return_transport_block = {
+            "type": "fixed",
+            "start_time": departure_time,
+            "end_time": arrival_time,
+            "duration_minutes": duration_mins,
+            "activity": {
+                "title": f"Return {mode_display} from {request.location.destination} to {request.location.baseCity}",
+                "type": "transport",
+                "description": description,
+                "location": {
+                    "name": f"From {request.location.destination}",
+                    "coordinates": src_coords,
+                    "google_maps_link": f"https://www.google.com/maps/dir/{urllib.parse.quote(request.location.destination)}/{urllib.parse.quote(request.location.baseCity)}"
+                },
+                "duration": duration_mins,
+                "cost": {"currency": cost_currency, "range": cost_range},
+                "images": [],
+                "link": main_transport.get("booking_link"),
+                "priority": 1,
+                "highlights": highlights
+            },
+            "travel": {
+                "mode": travel_mode,
+                "details": description,
+                "duration_minutes": duration_mins,
+                "cost": {"currency": cost_currency, "range": cost_range},
+                "operator": main_transport.get("operator", f"Local {mode_display} Service")
+            },
+            "warnings": [{
+                "type": "general",
+                "message": warning_message,
+                "priority": 1
+            }]
+        }
+        
+        # Add the return transport block to the end of the last day's time blocks
+        last_day["time_blocks"].append(return_transport_block)
+        logger.info(f"Added return transport to the last day (departure: {departure_time}, arrival: {arrival_time})")
     
     # Get essential info (should be done by now)
     essential_info = await essential_info_task
