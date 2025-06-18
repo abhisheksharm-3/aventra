@@ -4,6 +4,8 @@ import json
 from datetime import datetime, timedelta
 import math
 
+import urllib
+
 from app.models.request import ItineraryRequest
 from app.services.gemini_service import get_gemini_structured_response
 
@@ -157,8 +159,71 @@ async def get_transport_options(request: ItineraryRequest) -> Dict[str, Any]:
                     except (ValueError, TypeError):
                         # If time format issues, just leave as is
                         pass
-        
-        return transport_options
+        # Add fallback Google Maps links for any transport option missing links
+        if isinstance(transport_options, dict):
+            # Process main_transport links
+            if isinstance(transport_options.get("main_transport"), list):
+                for option in transport_options["main_transport"]:
+                    if not option.get("booking_link") and not option.get("link"):
+                        # Create Google Maps directions link
+                        if option.get("from") and option.get("to"):
+                            from_location = urllib.parse.quote(option["from"])
+                            to_location = urllib.parse.quote(option["to"])
+                            option["link"] = f"https://www.google.com/maps/dir/{from_location}/{to_location}"
+                    # Standardize link field (use "link" instead of "booking_link")
+                    if option.get("booking_link") and not option.get("link"):
+                        option["link"] = option.pop("booking_link")
+            
+            # Process local_transport links
+            if isinstance(transport_options.get("local_transport"), list):
+                for option in transport_options["local_transport"]:
+                    if not option.get("link"):
+                        # Create Google Maps search link for the area
+                        if option.get("area"):
+                            area = urllib.parse.quote(option["area"])
+                            mode = option.get("mode", "transport").lower()
+                            # Add mode-specific search
+                            if "taxi" in mode or "car" in mode:
+                                option["link"] = f"https://www.google.com/maps/search/taxi+in+{area}"
+                            elif "bus" in mode:
+                                option["link"] = f"https://www.google.com/maps/search/bus+in+{area}"
+                            elif "train" in mode or "metro" in mode or "subway" in mode:
+                                option["link"] = f"https://www.google.com/maps/search/train+station+in+{area}"
+                            elif "rental" in mode:
+                                option["link"] = f"https://www.google.com/maps/search/car+rental+in+{area}"
+                            else:
+                                option["link"] = f"https://www.google.com/maps/search/transportation+in+{area}"
+            
+            # Process transfers links
+            if isinstance(transport_options.get("transfers"), list):
+                for option in transport_options["transfers"]:
+                    if not option.get("link"):
+                        # Create Google Maps directions link
+                        if option.get("from") and option.get("to"):
+                            from_location = urllib.parse.quote(option["from"])
+                            to_location = urllib.parse.quote(option["to"])
+                            option["link"] = f"https://www.google.com/maps/dir/{from_location}/{to_location}"
+            
+            # Process route_transport links
+            if isinstance(transport_options.get("route_transport"), list):
+                for option in transport_options["route_transport"]:
+                    if not option.get("link"):
+                        # Create Google Maps directions link
+                        if option.get("from") and option.get("to"):
+                            from_location = urllib.parse.quote(option["from"])
+                            to_location = urllib.parse.quote(option["to"])
+                            mode_param = ""
+                            # Add mode-specific parameter if available
+                            if option.get("recommended_mode"):
+                                mode = option["recommended_mode"].lower()
+                                if "walk" in mode:
+                                    mode_param = "&travelmode=walking"
+                                elif "bus" in mode or "transit" in mode:
+                                    mode_param = "&travelmode=transit"
+                                elif "car" in mode or "drive" in mode or "taxi" in mode:
+                                    mode_param = "&travelmode=driving"
+                            option["link"] = f"https://www.google.com/maps/dir/{from_location}/{to_location}{mode_param}"
+                return transport_options
     except Exception as e:
         logger.error(f"Error generating transport options: {str(e)}")
         # Return a minimal structure in case of error
